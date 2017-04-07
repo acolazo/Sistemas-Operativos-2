@@ -98,7 +98,7 @@ void autenticacion_usuario(int sockfd, char* username){
 		perror( "lectura de socket" );
 		exit( 1 );
 	}
-	printf("%s\n", buffer );
+	printf("Respuesta: %s\n", buffer );
 
 
 

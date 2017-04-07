@@ -11,7 +11,9 @@
 
 void addUser(char * user, char * pass);
 void printTable();
-void verify_user(int newsockfd);
+int verify_user(char * buffer, char * message);
+int commands(char * buffer, char * message);
+void deleteLista();
 struct nodo* buscarUser(char * user);
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
@@ -41,6 +43,8 @@ int srv_i_cc( int argc, char *argv[] ) {
 	char pass[MAX_LENGTH+1]=defaultpass;
 	tabla.first = NULL;
 	addUser(user, pass);
+	printf("%s\n", user);
+	printf("%s\n", tabla.first->username);
 
 
 	if ( argc < 2 ) {
@@ -85,10 +89,16 @@ int srv_i_cc( int argc, char *argv[] ) {
 
 		if ( pid == 0 ) {  // Proceso hijo
 			close( sockfd );
-			verify_user(newsockfd);
-			
+
+			int verified;
+			int comando;
+			char message[TAM];
+			verified=0;
+			comando=0;
 			while ( 1 ) {
+				memset(message, '\0', TAM);
 				memset( buffer, '\0', TAM );
+
 
 				n = read( newsockfd, buffer, TAM-1 );
 				if ( n < 0 ) {
@@ -99,120 +109,134 @@ int srv_i_cc( int argc, char *argv[] ) {
 				printf( "PROCESO %d. ", getpid() );
 				printf( "Recibí: %s", buffer );
 
-				n = write( newsockfd, "Obtuve su mensaje", 18 );
+				if(verified==0){
+					verified=verify_user(buffer, message);
+				}
+				else if (verified==1){	//Acceso permitido
+					strcpy(message, "Obtuve su respuesta");
+					comando=commands(buffer, message);
+				}
+
+				
+
+				message[strlen(message)]='\n';
+				message[strlen(message)]='\0';
+				n = write( newsockfd, message, strlen(message) );
 				if ( n < 0 ) {
 					perror( "escritura en socket" );
 					exit( 1 );
 				}
-				// Verificación de si hay que terminar
-				buffer[strlen(buffer)-1] = '\0';
-				if( !strcmp( "fin", buffer ) ) {
-					printf( "PROCESO %d. Como recibí 'fin', termino la ejecución.\n\n", getpid() );
+
+				if(verified==-1 || comando==-1){ //Acceso denegado
+					//Hacer algo mas...? Esto debe seguir en el cliente...Cerrar cliente?
+
 					exit(0);
 				}
 			}
+
 		}
+
 		else {
 			printf( "SERVIDOR: Nuevo cliente, que atiende el proceso hijo: %d\n", pid );
 			close( newsockfd );
 		}
 	}
+
 	return 0; 
 } 
 
-void verify_user(int newsockfd){
+int commands(char * buffer, char * message){
+	char elemento[TAM];
+	strcpy(elemento, buffer);
+
+	memset(message, '\0', TAM);
+	elemento[strlen(elemento)-1]='\0';
+	printf("PROCESO%d.", getpid());
+	if( !strcmp( "fin", elemento ) ) {
+		printf( "Como recibí 'fin', termino la ejecución.\n\n", getpid() );
+		strcpy(message, "Se ejecuto el comando fin");
+		return -1;
+	}
+	else if(!strcmp("free", elemento)){
+		deleteLista();
+		strcpy(message, "Se libera la memoria");
+		printf("Se libera la memoria\n");
+	}
+
+	return 0;
+}
+
+int verify_user(char * buffer, char * message){
 	
-	int n;
-	int verified_user;
-	int verified_pass;
-	int verified;
-	int terminar;
-	struct nodo * user;
-	char buffer[TAM];
-	char message[TAM];
+	static int verified=0;
+	static struct nodo * user;
+	char elemento[TAM];
+	//memset(elemento, '\0', TAM);
 
-	terminar=0;
-	verified_user=0;
-	verified_pass=0;
-	verified=verified_pass*verified_user;
 
-	while(!verified){
-		
-		memset( buffer, '\0', TAM );
-		n = read( newsockfd, buffer, TAM-1 );
-		if ( n < 0 ) {
-			perror( "lectura de socket" );
-			exit(1);
-		}
+	printf("Proceso %d.", getpid());
+	
 
-		printf( "PROCESO %d. ", getpid() );
-		buffer[strlen(buffer)-1] = '\0';
-		if(verified_user){
-			if(strcmp(user->password, buffer)==0){
-				strcpy(message,"La contrasenia ingresada es correcta.\n");
-				printf("Acceso permitido: Contrasenia correcta.\n");
-				verified_pass=1;
-			}
-			else{
-				strcpy(message,"La contrasenia ingresada es incorrecta. Por favor, vuelva a intentar");
-				printf("Acceso denegado: Contrasenia incorrecta.\n");
-			}
+	strcpy(elemento, buffer);
+	elemento[strlen(elemento)-1] = '\0';
+	if(verified==0){
+		printf("Verificando usuario y contrasenia\n");
+		printf( "Nombre de usuario recibido: %s", buffer );
+		user=buscarUser(elemento);
+		if(user!=NULL){
+			printf("El usuario existe.\n");
+			verified=1;
 		}
 		else{
-			printf( "Nombre de usuario recibido: %s", buffer );
-			user=buscarUser(buffer);
-			if(user!=NULL){
-				printf("El usuario existe.\n");
-				verified_user=1;
-				strcpy(message,"El usuario se ha verificado. Ingrese la contrasenia y presione ENTER\n");
-			}
-			else{
-				printf("El usuario no existe.\n");
-				strcpy(message,"El usuario no existe. Por favor vuelva a intentar.\n");
-				terminar=1;
-			}
-
+			printf("El usuario no existe.\n");
+			verified=-1;
 		}
-
-		
-		n = write( newsockfd, message, 18 );
-		if ( n < 0 ) {
-			perror( "escritura en socket" );
-			exit( 1 );
-		}
-		
-				// Verificación de si hay que terminar
-		
-		if( !strcmp( "fin", buffer ) ) {
-			printf( "PROCESO %d. Como recibí 'fin', termino la ejecución.\n\n", getpid() );
-			exit(0);
-		}
-		if(terminar){
-			exit(0);
-		}
-
-		verified=verified_user*verified_pass;
+		strcpy(message,"Ingrese la contrasenia y presione ENTER.");
+		return 0;	//La verificacion aun no termino
 	}
-}
+	else if(verified==1){
+		if(strcmp(user->password, elemento)==0){
+			strcpy(message, "Acceso permitido");
+			printf("Acceso permitido: Contrasenia correcta.\n");
+			verified=1;	//Acceso permitido
+		}
+		else{
+			strcpy(message, "Acceso denegado: Usuario y/o contrasenia incorrectos");
+			printf("Acceso denegado: Contrasenia incorrecta.\n");
+			verified=-1;
+		}		
+	}
+	else{
+		strcpy(message, "Acceso denegado: Usuario y/o contrasenia incorrectos");
+		verified=-1;
+	}
+	return verified;
+}	
+
 
 
 void addUser(char * user, char * pass){
-	struct nodo nuevo;
-	int i;
-	for(i=0; i<MAX_LENGTH; i++){
-		nuevo.username[i]='\0';
-		nuevo.password[i]='\0';
+	//https://www.programiz.com/c-programming/c-dynamic-memory-allocation
+	struct nodo * nuevo;
+	nuevo = (struct nodo*) malloc(sizeof(struct nodo));
+	if(nuevo == NULL)
+	{
+		printf("Error! memory not allocated.");
+		exit(0);
 	}
-
-	strcpy(nuevo.username, user);
-	strcpy(nuevo.password, pass);
+	memset(nuevo->username,  '\0', MAX_LENGTH+1);
+	memset(nuevo->password, '\0', MAX_LENGTH+1);
+	
+	strcpy(nuevo->username, user);
+	strcpy(nuevo->password, pass);
+	printf("%s\n", nuevo->username);
 	if(tabla.first == NULL){
-		nuevo.next = NULL;
+		nuevo->next = NULL;
 	}
 	else{
-		nuevo.next=tabla.first;
+		nuevo->next=tabla.first;
 	}
-	tabla.first=&nuevo;
+	tabla.first=nuevo;
 	tabla.size++;
 }
 
@@ -229,4 +253,18 @@ struct nodo * buscarUser(char * user){	//Busco un usuario en la lista.
 		}
 	}
 	return usuario;							//Si es NULL, devuelvo usuario (NULL).
+}
+
+void deleteLista(){
+	struct nodo * first;
+	struct nodo * next;
+	first=tabla.first;
+	next=first->next;
+	while(next!=NULL){
+		free(first);
+		first=next;
+		next=first->next;
+	}
+	free(first);
+	tabla.first=NULL;
 }
