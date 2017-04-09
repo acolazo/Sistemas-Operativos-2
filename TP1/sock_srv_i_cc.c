@@ -153,7 +153,7 @@ int commands(char * buffer, char * message){
 	elemento[strlen(elemento)-1]='\0';
 	printf("PROCESO%d.", getpid());
 	if( !strcmp( "fin", elemento ) ) {
-		printf( "Como recibí 'fin', termino la ejecución.\n\n", getpid() );
+		printf( "Como recibí 'fin', termino la ejecución.\n\n");
 		strcpy(message, "Se ejecuto el comando fin");
 		return -1;
 	}
