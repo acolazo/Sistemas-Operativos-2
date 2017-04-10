@@ -9,6 +9,7 @@
 
 void autenticacion_usuario(int sockfd, char* username);
 
+
 int cli_i_cc( int argc, char *argv[] ) {
 	int sockfd, puerto, n;
 	struct sockaddr_in serv_addr;
@@ -44,8 +45,9 @@ int cli_i_cc( int argc, char *argv[] ) {
 
 	autenticacion_usuario(sockfd, argv[3]);
 
+	argv[3][strlen(argv[3])-1]='\0';
 	while(1) {
-		printf( "Ingrese el mensaje a transmitir: " );
+		printf("%s@%s: ", argv[3], argv[2]);
 		memset( buffer, '\0', TAM );
 		fgets( buffer, TAM-1, stdin );
 
@@ -78,8 +80,7 @@ int cli_i_cc( int argc, char *argv[] ) {
 } 
 
 
-void autenticacion_usuario(int sockfd, char* username){
-	int n;
+void autenticacion_usuario(int sockfd, char* username){	
 	char buffer[TAM];
 	int i;
 	i=strlen(username);
@@ -87,19 +88,35 @@ void autenticacion_usuario(int sockfd, char* username){
 	username[i+1]='\0';
 	printf("\nPara comenzar el proceso de autenticacion de usuario presione ENTER");
 	fgets(buffer, TAM-1, stdin);
-	n = write(sockfd, username, strlen(username));
-	if ( n < 0 ) {
+
+	memset(buffer, '\0', TAM);
+	strcpy(buffer, username);
+	for(i=0; i<2; i++){
+
+		n = write(sockfd, buffer, strlen(buffer));
+		if ( n < 0 ) {
 			perror( "escritura de socket" );
 			exit( 1 );
-	}
-	memset(buffer, '\0', TAM);
-	n=read(sockfd, buffer, TAM);
-	if ( n < 0 ) {
-		perror( "lectura de socket" );
-		exit( 1 );
-	}
-	printf("Respuesta: %s\n", buffer );
+		}
+		memset(buffer, '\0', TAM);
+		n=read(sockfd, buffer, TAM);
+		if ( n < 0 ) {
+			perror( "lectura de socket" );
+			exit( 1 );
+		}
+		printf("Respuesta: %s\n", buffer );
 
 
+
+		if(strstr(buffer, "denegado")!=NULL){
+			printf("Al denegarse el acceso, se termina la ejecucion.\n");
+			exit(0);
+		}
+		if(i==0){
+			memset(buffer, '\0', TAM);
+			fgets(buffer, TAM-1, stdin);
+		}
+
+	}
 
 }

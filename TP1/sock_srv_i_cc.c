@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "openfile.c"
 #define TAM 256
 #define MAX_LENGTH 10
 #define defaultuser "user"
@@ -15,6 +16,7 @@ int verify_user(char * buffer, char * message);
 int commands(char * buffer, char * message);
 void deleteLista();
 struct nodo* buscarUser(char * user);
+void freeall();
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -39,22 +41,27 @@ int srv_i_cc( int argc, char *argv[] ) {
 	struct sockaddr_in serv_addr, cli_addr;
 	int n;
 
+	openfile();
 	char user[MAX_LENGTH+1]=defaultuser;
 	char pass[MAX_LENGTH+1]=defaultpass;
 	tabla.first = NULL;
 	addUser(user, pass);
+	addUser("agus", "colazo");
+	addUser("admin", "admin");
 	printf("%s\n", user);
 	printf("%s\n", tabla.first->username);
 
 
 	if ( argc < 2 ) {
 		fprintf( stderr, "Uso: %s <puerto>\n", argv[0] );
+		freeall();
 		exit( 1 );
 	}
 
 	sockfd = socket( AF_INET, SOCK_STREAM, 0);
 	if ( sockfd < 0 ) { 
 		perror( " apertura de socket ");
+		freeall();
 		exit( 1 );
 	}
 
@@ -66,6 +73,7 @@ int srv_i_cc( int argc, char *argv[] ) {
 
 	if ( bind(sockfd, ( struct sockaddr *) &serv_addr, sizeof( serv_addr ) ) < 0 ) {
 		perror( "ligadura" );
+		freeall();
 		exit( 1 );
 	}
 
@@ -113,7 +121,6 @@ int srv_i_cc( int argc, char *argv[] ) {
 					verified=verify_user(buffer, message);
 				}
 				else if (verified==1){	//Acceso permitido
-					strcpy(message, "Obtuve su respuesta");
 					comando=commands(buffer, message);
 				}
 
@@ -145,6 +152,11 @@ int srv_i_cc( int argc, char *argv[] ) {
 	return 0; 
 } 
 
+void freeall(){
+	deleteLista();
+	freememory();
+}
+
 int commands(char * buffer, char * message){
 	char elemento[TAM];
 	strcpy(elemento, buffer);
@@ -158,9 +170,12 @@ int commands(char * buffer, char * message){
 		return -1;
 	}
 	else if(!strcmp("free", elemento)){
-		deleteLista();
+		freeall();
 		strcpy(message, "Se libera la memoria");
 		printf("Se libera la memoria\n");
+	}
+	else{
+		strcpy(message, "Obtuve su respuesta");	//Si no hago nada.
 	}
 
 	return 0;

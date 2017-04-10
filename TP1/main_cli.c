@@ -72,7 +72,7 @@ int check(char* message, char** argumentos){
  	argumentos[3][i]='\0';		//Por lo tanto pongo ese ultimo caracter en '\0' para poder compararlo mas adelante.
 
 
- 	if(strcmp(argumentos[0], "connect\0")==0 && argumentos[1]!=NULL && isNum(argumentos[2]) /*&& strcmp(argumentos[3], PORT)==0*/){
+ 	if(strcmp(argumentos[0], "connect\0")==0 && argumentos[1]!=NULL /*&& strcmp(argumentos[3], PORT)==0*/){
  		return 1;
  	}
  	else{
@@ -81,7 +81,3 @@ int check(char* message, char** argumentos){
  	
 
 }
-
-int isNum(char* argumento){
-	return 1;
-}//Esta funcion devuelve 1 si argumento es un numero, sino devuelve 0 (implementar).

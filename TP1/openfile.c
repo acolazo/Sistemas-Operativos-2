@@ -3,9 +3,11 @@
 #include <string.h>
 
 #define tam_base 20000
-#define tam_char 20
+#define tam_char 30
 #define tam_line 1024
 
+
+//https://www.tutorialspoint.com/c_standard_library/c_function_fgets.htm
 struct datos{
 	char numero[tam_char];
 	char estacion[tam_char];
@@ -24,13 +26,14 @@ struct datos{
 };
 
 void addData(struct datos * base, int i, int j, char* token);
+void freememory();
+void openfile();
+struct datos * base;	//Tiene que ser global asi la pueden usar en otro lados.
 
-
-int main()
+void openfile()
 {
 	int i;
 	int j;
-	struct datos * base;
 	FILE* stream;
 	char line[tam_line];
 	char* token;
@@ -133,9 +136,13 @@ for(i=0; i<18304; i++){
 
 
 fclose(stream);
-free(base);
 free(prevtoken);
-return 0;
+//freememory();
+}
+
+
+void freememory(){
+	free(base);
 }
 
 void addData(struct datos * base, int i, int j, char* token){
