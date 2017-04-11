@@ -129,7 +129,7 @@ strcpy(prevline, actualine);
 
 i=0;
 for(i=0; i<18304; i++){
-	printf("%s\n", base[i].fecha);
+	printf("%s\n", base[i].estacion);
 	i++;
 }
 
@@ -137,12 +137,14 @@ for(i=0; i<18304; i++){
 
 fclose(stream);
 free(prevtoken);
+prevtoken=NULL;
 //freememory();
 }
 
 
 void freememory(){
 	free(base);
+	base=NULL;
 }
 
 void addData(struct datos * base, int i, int j, char* token){

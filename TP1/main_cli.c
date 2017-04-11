@@ -1,8 +1,11 @@
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
 #include "sock_cli_i_cc.c"
+#include "variables_comunes.h"
 #define PORT "6020\0"
 //Deberia hacer un header.
 
-int isNum(char* argumento);
 int check(char* message, char** parametros);
 
 

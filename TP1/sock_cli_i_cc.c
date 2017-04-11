@@ -5,9 +5,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
-#define TAM 256
+#include "variables_comunes.h"
+#include "sock_cli_i_cc.h"
 
 void autenticacion_usuario(int sockfd, char* username);
+
 
 
 int cli_i_cc( int argc, char *argv[] ) {
@@ -83,6 +85,7 @@ int cli_i_cc( int argc, char *argv[] ) {
 void autenticacion_usuario(int sockfd, char* username){	
 	char buffer[TAM];
 	int i;
+	int n;
 	i=strlen(username);
 	username[i]='\n';
 	username[i+1]='\0';

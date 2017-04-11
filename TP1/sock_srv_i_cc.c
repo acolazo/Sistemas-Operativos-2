@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "openfile.c"
-#define TAM 256
+#define TAM 1024
 #define MAX_LENGTH 10
 #define defaultuser "user"
 #define defaultpass "pass"
@@ -17,6 +17,7 @@ int commands(char * buffer, char * message);
 void deleteLista();
 struct nodo* buscarUser(char * user);
 void freeall();
+void listar();
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -48,9 +49,10 @@ int srv_i_cc( int argc, char *argv[] ) {
 	addUser(user, pass);
 	addUser("agus", "colazo");
 	addUser("admin", "admin");
-	printf("%s\n", user);
-	printf("%s\n", tabla.first->username);
+	
+		
 
+	
 
 	if ( argc < 2 ) {
 		fprintf( stderr, "Uso: %s <puerto>\n", argv[0] );
@@ -163,7 +165,7 @@ int commands(char * buffer, char * message){
 
 	memset(message, '\0', TAM);
 	elemento[strlen(elemento)-1]='\0';
-	printf("PROCESO%d.", getpid());
+	printf("PROCESO %d. ", getpid());
 	if( !strcmp( "fin", elemento ) ) {
 		printf( "Como recibí 'fin', termino la ejecución.\n\n");
 		strcpy(message, "Se ejecuto el comando fin");
@@ -174,11 +176,43 @@ int commands(char * buffer, char * message){
 		strcpy(message, "Se libera la memoria");
 		printf("Se libera la memoria\n");
 	}
+	else if(!strcmp("listar", elemento)){
+		listar(message);
+		printf("Se muestra listado de estaciones\n");
+	}
 	else{
 		strcpy(message, "Obtuve su respuesta");	//Si no hago nada.
 	}
 
 	return 0;
+}
+
+void listar(char * message){		//hay un espacio \n cagando todo...
+	int i;
+	//char mensaje[TAM];
+	//memset(mensaje, '\0', TAM);
+	i=1;
+	strcpy(message, "\n");
+
+	strcat(message, base[0].numero);
+	strcat(message, ": ");
+	strcat(message, base[0].estacion);
+	strcat(message, "\n");
+
+ while(strcmp(base[i+1].numero, "\0")){	//Mientras base[i].numero no sea un string vacio.
+	if(!strcmp(base[i-1].numero, base[i].numero)){
+
+		}	//Si son iguales no hago nada.
+		else{
+			strcat(message, base[i].numero);
+			strcat(message, ": ");
+			strcat(message, base[i].estacion);
+			strcat(message, "\n");
+		}	//Me pone un espacio vacio no se porque...
+		i++;
+	}
+	printf("(%d)", i);
+	return;
 }
 
 int verify_user(char * buffer, char * message){
@@ -189,7 +223,7 @@ int verify_user(char * buffer, char * message){
 	//memset(elemento, '\0', TAM);
 
 
-	printf("Proceso %d.", getpid());
+	printf("Proceso %d. ", getpid());
 	
 
 	strcpy(elemento, buffer);
@@ -253,6 +287,7 @@ void addUser(char * user, char * pass){
 	}
 	tabla.first=nuevo;
 	tabla.size++;
+	nuevo=NULL; //Esta bien? Hace falta ?
 }
 
 struct nodo * buscarUser(char * user){	//Busco un usuario en la lista.
