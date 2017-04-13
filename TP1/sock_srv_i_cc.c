@@ -5,9 +5,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "openfile.c"
-#define TAM 1024
+#define TAM 2048
 #define MAX_LENGTH 10
-#define defaultuser "user"
+#define defaultuser "user"	///deberia usar enum
 #define defaultpass "pass"
 
 void addUser(char * user, char * pass);
@@ -17,7 +17,9 @@ int commands(char * buffer, char * message);
 void deleteLista();
 struct nodo* buscarUser(char * user);
 void freeall();
-void listar();
+
+void listar(char * message);
+void diario_precipitacion(char* nro_estacion, char *message);
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -50,7 +52,13 @@ int srv_i_cc( int argc, char *argv[] ) {
 	addUser("agus", "colazo");
 	addUser("admin", "admin");
 	
-		
+	//prueba;
+	char prueba[TAM];
+	//listar(prueba);
+	diario_precipitacion("30135", prueba);
+	freeall();
+	return 0;
+	//prueba;
 
 	
 
@@ -187,33 +195,7 @@ int commands(char * buffer, char * message){
 	return 0;
 }
 
-void listar(char * message){		//hay un espacio \n cagando todo...
-	int i;
-	//char mensaje[TAM];
-	//memset(mensaje, '\0', TAM);
-	i=1;
-	strcpy(message, "\n");
 
-	strcat(message, base[0].numero);
-	strcat(message, ": ");
-	strcat(message, base[0].estacion);
-	strcat(message, "\n");
-
- while(strcmp(base[i+1].numero, "\0")){	//Mientras base[i].numero no sea un string vacio.
-	if(!strcmp(base[i-1].numero, base[i].numero)){
-
-		}	//Si son iguales no hago nada.
-		else{
-			strcat(message, base[i].numero);
-			strcat(message, ": ");
-			strcat(message, base[i].estacion);
-			strcat(message, "\n");
-		}	//Me pone un espacio vacio no se porque...
-		i++;
-	}
-	printf("(%d)", i);
-	return;
-}
 
 int verify_user(char * buffer, char * message){
 	
@@ -318,3 +300,141 @@ void deleteLista(){
 	free(first);
 	tabla.first=NULL;
 }
+
+
+void listar(char * message)	
+/*Esta funcion hace el listado de las estaciones disponibles y sus sensores activos */
+/*El argumento message es un puntero a un buffer que servira para transmitir el mensaje al cliente*/
+/*Estoy bastante seguro que en esta funcion me podria ahorrar un poco de duplicacion de codigo...*/
+{		//hay un espacio \n cagando todo...
+	int i;
+	int j;
+	int sensores_activos [20];
+
+
+	for(j=0; j<20; j++){
+		sensores_activos[j]=0;
+	}
+	i=1;
+	strcpy(message, "\n");
+
+	strcat(message, base[0].numero);
+	strcat(message, ": ");
+	strcat(message, base[0].estacion);
+	strcat(message, "\n");
+	for(j=4; j<20; j++)
+	{
+		if((sensores_activos[j]==0)
+			&& strcmp(base[0].punteros[j], "--"))
+		{
+			sensores_activos[j]=1;
+			strcat(message, nombre_columnas.punteros[j]);
+			strcat(message, ", ");
+		}
+	}
+	while(strcmp(base[i].numero, "\0"))
+ 	{	//Mientras base[i].numero no sea un string vacio.
+ 		printf("%d\n", i);
+ 		if(!strcmp(base[i-1].numero, base[i].numero))
+ 		{
+
+		}	//Si son iguales no hago nada.
+		else
+		{	
+			strcat(message, "\n\n");
+			strcat(message, base[i].numero);
+			strcat(message, ": ");
+			strcat(message, base[i].estacion);
+			strcat(message, "\nSensores activos: ");
+			for(j=4; j<20; j++) /* Reseteo los sensores_activos */
+			{
+				sensores_activos[j]=0;
+			}
+		}	//Me pone un espacio vacio no se porque...
+
+		for(j=4; j<20; j++)
+		{
+			if((sensores_activos[j]==0)
+				&& strcmp(base[i].punteros[j], "--"))
+			{
+				sensores_activos[j]=1;
+				strcat(message, nombre_columnas.punteros[j]);
+				strcat(message, ", ");
+			}
+		}
+
+		i++;
+	}
+	printf("%s\n", message);
+	return;
+}
+
+void diario_precipitacion(char* nro_estacion, char *message)
+{
+	//base[x].punteros[7] es precipitacion.
+	int i;
+	double acumulado;
+	double numero;
+	char s_acumulado[20];
+	i=0;
+	acumulado=0;
+
+	//int num=strlen(base[100].numero[1]);
+	//int num2=strlen(nro_estacion);
+	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
+	printf("QUIERO VERRR: %s, %s, %s", base[0].precipitacion, base[5].precipitacion, base[10].precipitacion);
+	while(strcmp(base[i].numero, "\0") 
+		&& strcmp(&base[i].numero[1], nro_estacion))
+	{
+		//printf("%d\n", i);
+		i++;
+	}	/*Itero hasta encontrarme con el nro_estacion o terminar de correr toda la base*/
+		
+		if(!strcmp(&base[i].numero[1], nro_estacion))
+		{
+			strcpy(message, "La estacion numero ");
+			strcat(message, base[i].numero);
+			strcat(message, " tiene las siguientes precipitaciones\n\n");
+			while(!strcmp(&base[i].numero[1], nro_estacion))
+			{
+				sscanf(base[i].precipitacion, "%lf", &acumulado);	//http://stackoverflow.com/questions/10075294/converting-string-to-a-double-variable-in-c
+				while(!strcmp(base[i].numero, base[i+1].numero)
+					&& !strcmp(strtok(base[i].fecha, " "), strtok(base[i+1].fecha, " ")))					
+				{
+					sscanf(base[i].precipitacion, "%lf", &numero);
+					acumulado=acumulado+numero;
+					i++;					
+				}
+				printf("%lf\n", acumulado);
+				snprintf(s_acumulado, 20, "%lf", acumulado);	/*Convierte acumulado en string en decimal*/
+				strcat(message, base[i].fecha);
+				strcat(message, ": ");
+				strcat(message, s_acumulado);	
+				strcat(message, " [mm]\n");
+				
+
+				i++;
+			}
+
+
+		}
+		else
+		{
+			strcpy(message, "No se encontro esa estacion en la base de datos.");
+		}
+
+		printf("%s\n", message);
+		
+		return;
+	}
+
+/*
+diario_precipitacion no_estación: muestra el acumulado diario de la variable
+precipitación de no_estación (no_día: acumnulado mm).
+
+• mensual_precipitacion no_estación: muestra el acumulado mensual de la
+variable precipitación (no_día: acumnulado mm).
+
+• promedio variable: muestra el promedio de todas las muestras de la variable
+de cada estación (no_estacion: promedio.
+*/
