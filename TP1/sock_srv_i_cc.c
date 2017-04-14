@@ -20,6 +20,7 @@ void freeall();
 
 void listar(char * message);
 void diario_precipitacion(char* nro_estacion, char *message);
+void mensual_precipitacion(char* nro_estacion, char *message);
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -56,6 +57,7 @@ int srv_i_cc( int argc, char *argv[] ) {
 	char prueba[TAM];
 	//listar(prueba);
 	diario_precipitacion("30135", prueba);
+	mensual_precipitacion("30135", prueba);
 	freeall();
 	return 0;
 	//prueba;
@@ -374,15 +376,16 @@ void diario_precipitacion(char* nro_estacion, char *message)
 	//base[x].punteros[7] es precipitacion.
 	int i;
 	double acumulado;
+	double acumulado_total;
 	double numero;
 	char s_acumulado[20];
 	i=0;
 	acumulado=0;
+	acumulado_total=0;
 
 	//int num=strlen(base[100].numero[1]);
 	//int num2=strlen(nro_estacion);
 	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
-	printf("QUIERO VERRR: %s, %s, %s", base[0].precipitacion, base[5].precipitacion, base[10].precipitacion);
 	while(strcmp(base[i].numero, "\0") 
 		&& strcmp(&base[i].numero[1], nro_estacion))
 	{
@@ -394,12 +397,79 @@ void diario_precipitacion(char* nro_estacion, char *message)
 		{
 			strcpy(message, "La estacion numero ");
 			strcat(message, base[i].numero);
-			strcat(message, " tiene las siguientes precipitaciones\n\n");
+			strcat(message, " tiene las siguientes precipitaciones diarias:\n\n");
 			while(!strcmp(&base[i].numero[1], nro_estacion))
 			{
 				sscanf(base[i].precipitacion, "%lf", &acumulado);	//http://stackoverflow.com/questions/10075294/converting-string-to-a-double-variable-in-c
 				while(!strcmp(base[i].numero, base[i+1].numero)
 					&& !strcmp(strtok(base[i].fecha, " "), strtok(base[i+1].fecha, " ")))					
+				{
+					sscanf(base[i+1].precipitacion, "%lf", &numero);
+					acumulado=acumulado+numero;
+					i++;					
+				}
+				acumulado_total=acumulado+acumulado_total;
+				printf("%lf\n", acumulado_total);
+				printf("%lf\n", acumulado);
+				snprintf(s_acumulado, 20, "%lf", acumulado);	/*Convierte acumulado en string en decimal*/
+				strcat(message, base[i].fecha);
+				strcat(message, ": ");
+				strcat(message, s_acumulado);	
+				strcat(message, " [mm]\n");
+				
+
+				i++;
+			}
+
+
+		}
+		else
+		{
+			strcpy(message, "No se encontro esa estacion en la base de datos.");
+		}
+
+		printf("%s\n", message);
+		
+		return;
+	}
+
+
+void mensual_precipitacion(char* nro_estacion, char *message)
+{
+	//base[x].punteros[7] es precipitacion.
+	int i;
+	double acumulado;
+	double numero;
+	char s_acumulado[20];
+	char *token1;
+	char *token2;
+	i=0;
+	acumulado=0;
+
+	//int num=strlen(base[100].numero[1]);
+	//int num2=strlen(nro_estacion);
+	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
+	while(strcmp(base[i].numero, "\0") 
+		&& strcmp(&base[i].numero[1], nro_estacion))
+	{
+		//printf("%d\n", i);
+		i++;
+	}	/*Itero hasta encontrarme con el nro_estacion o terminar de correr toda la base*/
+		
+		if(!strcmp(&base[i].numero[1], nro_estacion))
+		{
+			strcpy(message, "La estacion numero ");
+			strcat(message, base[i].numero);
+			strcat(message, " tiene las siguientes precipitaciones mensuales:\n\n");
+			while(!strcmp(&base[i].numero[1], nro_estacion))
+			{
+				sscanf(base[i].precipitacion, "%lf", &acumulado);	//http://stackoverflow.com/questions/10075294/converting-string-to-a-double-variable-in-c
+				token1=strtok(base[i].fecha, "/");
+				token1=strtok(base[i].fecha, " ");
+				token2=strtok(base[i+1].fecha, "/");
+				token2=strtok(base[i+1].fecha, " ");
+				while(!strcmp(base[i].numero, base[i+1].numero)
+					&& !strcmp(token1, token2))					
 				{
 					sscanf(base[i].precipitacion, "%lf", &numero);
 					acumulado=acumulado+numero;
@@ -407,7 +477,7 @@ void diario_precipitacion(char* nro_estacion, char *message)
 				}
 				printf("%lf\n", acumulado);
 				snprintf(s_acumulado, 20, "%lf", acumulado);	/*Convierte acumulado en string en decimal*/
-				strcat(message, base[i].fecha);
+				strcat(message, token1);
 				strcat(message, ": ");
 				strcat(message, s_acumulado);	
 				strcat(message, " [mm]\n");
