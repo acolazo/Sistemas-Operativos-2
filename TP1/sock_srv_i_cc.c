@@ -1,4 +1,4 @@
-//#include <stdio.h>
+	//#include <stdio.h>
 //#include <stdlib.h>
 //#include <string.h>
 #include <sys/types.h> 
@@ -21,6 +21,7 @@ void freeall();
 void listar(char * message);
 void diario_precipitacion(char* nro_estacion, char *message);
 void mensual_precipitacion(char* nro_estacion, char *message);
+void promedio_variable(char* nro_estacion, char* nombre_variable,char *message);
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -53,15 +54,22 @@ int srv_i_cc( int argc, char *argv[] ) {
 	addUser("agus", "colazo");
 	addUser("admin", "admin");
 	
+	/*
 	//prueba;
 	char prueba[TAM];
 	//listar(prueba);
 	diario_precipitacion("30135", prueba);
 	mensual_precipitacion("30135", prueba);
+	for(n=0;n<20;n++)
+	{
+		printf("%s\n", nombre_columnas.punteros[n]);
+	}
+
+	promedio_variable("30135", "Humedad", prueba);
 	freeall();
 	return 0;
 	//prueba;
-
+	*/
 	
 
 	if ( argc < 2 ) {
@@ -434,35 +442,35 @@ void diario_precipitacion(char* nro_estacion, char *message)
 	}
 
 
-void mensual_precipitacion(char* nro_estacion, char *message)
-{
+	void mensual_precipitacion(char* nro_estacion, char *message)
+	{
 	//base[x].punteros[7] es precipitacion.
-	int i;
-	double acumulado;
-	double numero;
-	char s_acumulado[20];
-	char *token1;
-	char *token2;
-	i=0;
-	acumulado=0;
+		int i;
+		double acumulado;
+		double numero;
+		char s_acumulado[20];
+		char *token1;
+		char *token2;
+		i=0;
+		acumulado=0;
 
 	//int num=strlen(base[100].numero[1]);
 	//int num2=strlen(nro_estacion);
 	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
-	while(strcmp(base[i].numero, "\0") 
-		&& strcmp(&base[i].numero[1], nro_estacion))
-	{
-		//printf("%d\n", i);
-		i++;
-	}	/*Itero hasta encontrarme con el nro_estacion o terminar de correr toda la base*/
-		
-		if(!strcmp(&base[i].numero[1], nro_estacion))
+		while(strcmp(base[i].numero, "\0") 
+			&& strcmp(&base[i].numero[1], nro_estacion))
 		{
-			strcpy(message, "La estacion numero ");
-			strcat(message, base[i].numero);
-			strcat(message, " tiene las siguientes precipitaciones mensuales:\n\n");
-			while(!strcmp(&base[i].numero[1], nro_estacion))
+		//printf("%d\n", i);
+			i++;
+	}	/*Itero hasta encontrarme con el nro_estacion o terminar de correr toda la base*/
+
+			if(!strcmp(&base[i].numero[1], nro_estacion))
 			{
+				strcpy(message, "La estacion numero ");
+				strcat(message, base[i].numero);
+				strcat(message, " tiene las siguientes precipitaciones mensuales:\n\n");
+				while(!strcmp(&base[i].numero[1], nro_estacion))
+				{
 				sscanf(base[i].precipitacion, "%lf", &acumulado);	//http://stackoverflow.com/questions/10075294/converting-string-to-a-double-variable-in-c
 				token1=strtok(base[i].fecha, "/");
 				token1=strtok(base[i].fecha, " ");
@@ -498,6 +506,90 @@ void mensual_precipitacion(char* nro_estacion, char *message)
 		return;
 	}
 
+
+	void promedio_variable (char * nro_estacion, char * nombre_variable, char * message)
+	{
+		//base[x].punteros[7] es precipitacion.
+		int i;
+		double j;	//No me acuerdo como se traba (double/int)
+		int variable;
+		double promedio;
+		double numero;
+		char s_promedio[20];
+		char *token;
+		char *token1;
+		char *token2;
+		variable=-1;
+		promedio=0;
+		numero=0;
+		j=0;
+
+	//int num=strlen(base[100].numero[1]);
+	//int num2=strlen(nro_estacion);
+	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
+		for(i=0; i<20; i++)
+		{
+			token=strstr(nombre_columnas.punteros[i], nombre_variable);
+			if(token!=NULL)
+			{
+				variable=i;
+				break;	//Corta el loop?
+			}
+		}	//Busco la variable que corresponde o dejo en -1 si no corresponde ninguna.
+		i=0;			//Pongo a i en "cero" para el siguiente bucle.
+
+
+		if(variable!=-1)
+		{
+			while(strcmp(base[i].numero, "\0") 
+				&& strcmp(&base[i].numero[1], nro_estacion))
+			{
+		//printf("%d\n", i);
+				i++;
+			}	/*Itero hasta encontrarme con el nro_estacion o terminar de correr toda la base*/
+
+				if(!strcmp(&base[i].numero[1], nro_estacion))	//Si se encontro la estacion.
+				{
+					strcpy(message, "El promedio de la variable ");
+					strcat(message, nombre_columnas.punteros[variable]);
+					strcat(message, " de la estacion numero ");
+					strcat(message, &base[i].numero[1]);
+					strcat(message, " es:\n\n");
+
+					while(!strcmp(&base[i].numero[1], nro_estacion))
+					{
+						if(strcmp(base[i].punteros[variable], "--"))
+						{
+							sscanf(base[i].punteros[variable], "%lf", &numero);	
+							promedio=promedio+numero;
+							j++;	
+						}
+						else
+						{
+
+						}
+						i++;					
+					}
+					promedio=promedio/j;
+					snprintf(s_promedio, 20, "%lf", promedio);	/*Convierte promedio en string en decimal*/
+					strcat(message, s_promedio);
+					strcat(message, "\n");
+				}
+				else
+				{
+					strcpy(message, "No se encontro esa estacion en la base de datos.");
+				}
+			}
+			else
+			{
+				strcpy(message, "Esa variable no existe.");
+			}
+
+
+			printf("\n\n%s\n", message);
+
+			return;
+		}
 /*
 diario_precipitacion no_estación: muestra el acumulado diario de la variable
 precipitación de no_estación (no_día: acumnulado mm).
@@ -508,3 +600,6 @@ variable precipitación (no_día: acumnulado mm).
 • promedio variable: muestra el promedio de todas las muestras de la variable
 de cada estación (no_estacion: promedio.
 */
+
+
+//Hacer comando help y lista de comandos.
