@@ -12,13 +12,14 @@
 #define TAM 1024
 
 
-void sendfile_sc( int port_number ) {
+void sendfile_sc( int port_number , int *fd) {
 	int sockfd, puerto, tamano_direccion;
 	char buffer[ TAM ];
 	char buffer_send [TAM];
 	struct sockaddr_in serv_addr;
 	int n;
 	FILE * file_send;
+
 
 
 	file_send=fopen(FILE_TO_SEND, "r");
@@ -53,9 +54,15 @@ void sendfile_sc( int port_number ) {
 		exit( 1 );
 	}
 
-        printf( "Socket disponible: %d\n", ntohs(serv_addr.sin_port) );
+	printf( "Socket disponible: %d\n", ntohs(serv_addr.sin_port) );
 
 	tamano_direccion = sizeof( struct sockaddr );
+
+	char message_pipe[10];
+	close(fd[0]);
+	strcpy(message_pipe, "Continue");
+	write(fd[1], message_pipe, 10);
+	close(fd[1]);
 
 	while(fgets(buffer_send, TAM, file_send))	
 	{	
@@ -66,18 +73,18 @@ void sendfile_sc( int port_number ) {
 			perror( "lectura de socket" );
 			exit( 1 );
 		}
-		printf( "Recibí: %s\n", buffer );
+		//printf( "Recibí: %s\n", buffer );
 		n = sendto( sockfd, (void *)buffer_send, TAM, 0, (struct sockaddr *)&serv_addr, tamano_direccion  );
 		if ( n < 0 ) {
 			perror( "escritura en socket" );
 			exit( 1 );
 		}
 	}
-		n = sendto( sockfd, (void *)"END_CODE", 9, 0, (struct sockaddr *)&serv_addr, tamano_direccion  );
-		if ( n < 0 ) {
-			perror( "escritura en socket" );
-			exit( 1 );
-		}	
+	n = sendto( sockfd, (void *)"END_CODE", 9, 0, (struct sockaddr *)&serv_addr, tamano_direccion  );
+	if ( n < 0 ) {
+		perror( "escritura en socket" );
+		exit( 1 );
+	}	
 
 	printf("FILE SENT\n");
 	fclose(file_send);

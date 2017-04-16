@@ -719,30 +719,47 @@ void diario_precipitacion(char* nro_estacion, char *message)
 					i++;
 				}
 				fclose(fp);
-			/* Sending file */	
+				/*  Synchronization with pipe */
+				char message_pipe[10];
+				int status, ret, fd[2];
+
+				ret = pipe(fd);
+				if(ret == -1)
+				{
+					printf("ERROR AL CREAR PIPE\n");
+					exit(0);
+				}
+				/* Sending file */	
+
+				
 				pid=fork();
 				if ( pid < 0 ) {
 					perror( "fork" );
 					exit( 1 );
 				}
-			if(pid==0)	/* Proceso hijo */
+				if(pid==0)	/* Proceso hijo */ /* Pipe Writer */
 				{
-					printf("%d\n", port_number_udp);
-					sendfile_sc(port_number_udp);
+					sendfile_sc(port_number_udp, fd);
 					exit(1);
 				}
 				else
-				{
-					strcpy(message, "Downloading...");	
-				}
+    {	/* Parent Reader */
+    	close(fd[1]); //reader closes unused ch.
+    while( read(fd[0], message_pipe, 30) > 0 )
+    	printf("Message: %s", message_pipe);
+    close(fd[0]);
 
-			}
-			else	
-			{
-				strcpy(message, "No se encontro la estacion");
-			}
-			return;
-		}
+    strcpy(message, "Downloading...");	
+    printf("\n%s\n", message);
+}
+
+}
+else	
+{
+	strcpy(message, "No se encontro la estacion");
+}
+return;
+}
 /*
 diario_precipitacion no_estación: muestra el acumulado diario de la variable
 precipitación de no_estación (no_día: acumnulado mm).

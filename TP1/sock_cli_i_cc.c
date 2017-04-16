@@ -54,6 +54,15 @@ int cli_i_cc( int argc, char *argv[] ) {
 		memset( buffer, '\0', TAM );
 		fgets( buffer, TAM-1, stdin );
 
+		printf("%d\n", strlen(buffer));
+		while(strlen(buffer)==1)
+		{
+			printf("Please type something.\n");
+			printf("%s@%s: ", argv[3], argv[2]);
+			memset( buffer, '\0', TAM );
+			fgets( buffer, TAM-1, stdin );
+		}
+
 		n = write( sockfd, buffer, strlen(buffer) );
 		if ( n < 0 ) {
 			perror( "escritura de socket" );
