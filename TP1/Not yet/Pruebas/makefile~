@@ -1,0 +1,5 @@
+all: srv cli
+	@echo Compilacion realizada.
+srv:
+	
+

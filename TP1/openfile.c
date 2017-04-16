@@ -1,13 +1,15 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+#ifndef OPENFILE_H
+#define OPENFILE_H
+#include "openfile.h"
+#endif
 
-	#define tam_base 20000
-	#define tam_char 30
-	#define tam_line 1024
 
 
 	//https://www.tutorialspoint.com/c_standard_library/c_function_fgets.htm
+/*
 struct datos{
 	char numero[tam_char];
 	char estacion[tam_char];
@@ -31,29 +33,31 @@ struct datos{
 	char d19[tam_char];
 	char * punteros[20];
 };
-
+*/
 void inicializopunteros(struct datos * estructura); /* Esta funcion inicializa los punteros de la estructura */
 void addData(struct datos * base, int i, int j, char* token);
+/*
 void freememory();
 void openfile();
+
 
 
 	struct datos * base;	//Tiene que ser global asi la pueden usar en otro lados.
 	struct datos nombre_columnas;
 
+*/
 
+void openfile()
+{
+	int i;
+	int j;
+	FILE* stream;
+	char line[tam_line];
+	char* token;
+	char* prevtoken;
+	char prevline[tam_line];
+	char actualine[tam_line];
 
-	void openfile()
-	{
-		int i;
-		int j;
-		FILE* stream;
-		char line[tam_line];
-		char* token;
-		char* prevtoken;
-		char prevline[tam_line];
-		char actualine[tam_line];
-		
 		i=-1;	//Empieza en -1
 		j=0;
 		stream = fopen("datos_meteorologicos.CSV", "r");

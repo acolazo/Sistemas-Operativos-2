@@ -7,6 +7,7 @@
 #include <netdb.h> 
 #include "variables_comunes.h"
 #include "sock_cli_i_cc.h"
+#include "sock_cli_i_sc.h"
 
 void autenticacion_usuario(int sockfd, char* username);
 
@@ -61,7 +62,7 @@ int cli_i_cc( int argc, char *argv[] ) {
 
 		// Verificando si se escribió: fin
 		buffer[strlen(buffer)-1] = '\0';
-		if( !strcmp( "fin", buffer ) ) {
+		if( !strcmp( "desconectar", buffer ) ) {
 			terminar = 1;
 		}
 
@@ -72,6 +73,14 @@ int cli_i_cc( int argc, char *argv[] ) {
 			exit( 1 );
 		}
 		printf( "Respuesta: %s\n", buffer );
+		buffer[strlen(buffer)-1] = '\0';
+		if(!strcmp(buffer, "Downloading..."))
+		{
+			printf("Se bloquea la interfaz hasta que se descargue el archivo\n");
+			wait(10);
+			receive_file(server, puerto+1);
+			printf("\nSe termino de descargar el archivo\n");
+		}
 		if( terminar ) {
 			printf( "Finalizando ejecución\n" );
 			exit(0);

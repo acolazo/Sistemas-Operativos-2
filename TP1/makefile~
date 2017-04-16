@@ -1,13 +1,13 @@
 all: srv cli
 	@echo Compilacion realizada. Ejecutar con ./srv y ./cli
-srv: sock_srv_i_cc.c
-	gcc -g -o srv main_srv.c
+srv: sock_srv_i_cc.c openfile.c sock_srv_i_sc.c
+	gcc -g -o srv main_srv.c sock_srv_i_cc.c openfile.c sock_srv_i_sc.c
 cli: sock_cli_i_cc.c
 	gcc -g -o cli main_cli.c
 checksrv:
 	cppcheck main_srv.c
 checkcli:
-	cppchech main_cli.c
+	cppcheck main_cli.c
 clean:
 	rm cli
 	rm srv

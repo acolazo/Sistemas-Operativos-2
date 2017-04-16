@@ -1,14 +1,25 @@
-	//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "openfile.c"
-#define TAM 2048
+#include "sock_srv_i_cc.h"
+#include "variables_comunes.h"
+#include "sock_srv_i_sc.h"
+#ifndef OPENFILE_H
+#define OPENFILE_H
+#include "openfile.h"
+#endif 
+
+
+
+
 #define MAX_LENGTH 10
 #define defaultuser "user"	///deberia usar enum
 #define defaultpass "pass"
+
+
 
 void addUser(char * user, char * pass);
 void printTable();
@@ -22,6 +33,7 @@ void listar(char * message);
 void diario_precipitacion(char* nro_estacion, char *message);
 void mensual_precipitacion(char* nro_estacion, char *message);
 void promedio_variable(char* nro_estacion, char* nombre_variable,char *message);
+void descargar(char * nro_estacion, char * message);
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -39,6 +51,7 @@ struct tabla_users{
 
 
 struct tabla_users tabla;
+int port_number_udp;
 
 int srv_i_cc( int argc, char *argv[] ) {
 	int sockfd, newsockfd, puerto, clilen, pid;
@@ -54,24 +67,30 @@ int srv_i_cc( int argc, char *argv[] ) {
 	addUser("agus", "colazo");
 	addUser("admin", "admin");
 	
-	/*
+	
 	//prueba;
+	/*
+	port_number=atoi(argv[1]);
 	char prueba[TAM];
+	char message[TAM];
+	strcpy(prueba, "descargar 30099");
+	commands(prueba, message);
+	printf("%s\n", message);
 	//listar(prueba);
-	diario_precipitacion("30135", prueba);
-	mensual_precipitacion("30135", prueba);
-	for(n=0;n<20;n++)
-	{
-		printf("%s\n", nombre_columnas.punteros[n]);
-	}
+	//diario_precipitacion("30135", prueba);
+	//mensual_precipitacion("30135", prueba);
+	//for(n=0;n<20;n++)
+	//{
+	//	printf("%s\n", nombre_columnas.punteros[n]);
+	//}
 
-	promedio_variable("30135", "Humedad", prueba);
+	//promedio_variable("30135", "Humedad", prueba);
 	freeall();
 	return 0;
 	//prueba;
-	*/
-	
 
+*/
+	
 	if ( argc < 2 ) {
 		fprintf( stderr, "Uso: %s <puerto>\n", argv[0] );
 		freeall();
@@ -87,6 +106,7 @@ int srv_i_cc( int argc, char *argv[] ) {
 
 	memset( (char *) &serv_addr, 0, sizeof(serv_addr) );
 	puerto = atoi( argv[1] );
+	port_number_udp=puerto+1;
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons( puerto );
@@ -178,15 +198,21 @@ void freeall(){
 }
 
 int commands(char * buffer, char * message){
+	char * token1;
+	char * token2;
+	char * token3;
 	char elemento[TAM];
 	strcpy(elemento, buffer);
 
+	token1=NULL;
+	token2=NULL;
+	token3=NULL;
 	memset(message, '\0', TAM);
 	elemento[strlen(elemento)-1]='\0';
 	printf("PROCESO %d. ", getpid());
-	if( !strcmp( "fin", elemento ) ) {
-		printf( "Como recibí 'fin', termino la ejecución.\n\n");
-		strcpy(message, "Se ejecuto el comando fin");
+	if( !strcmp( "desconectar", elemento ) ) {
+		printf( "Como recibí 'desconectar', termino la ejecución.\n\n");
+		strcpy(message, "Se ejecuto el comando desconectar");
 		return -1;
 	}
 	else if(!strcmp("free", elemento)){
@@ -198,8 +224,33 @@ int commands(char * buffer, char * message){
 		listar(message);
 		printf("Se muestra listado de estaciones\n");
 	}
-	else{
-		strcpy(message, "Obtuve su respuesta");	//Si no hago nada.
+	else
+	{
+		token1=strtok(elemento, " ");
+		token2=strtok(NULL, " ");
+		token3=strtok(NULL, "\0");
+
+		if(!strcmp(token1, "diario_precipitacion"))
+		{
+			diario_precipitacion(token2, message);
+		}
+		else if(!strcmp(token1, "mensual_precipitacion"))
+		{
+			mensual_precipitacion(token2, message);
+		}
+		else if(!strcmp(token1, "promedio_variable"))
+		{
+			promedio_variable(token2, token3, message);
+		}
+		else if(!strcmp(token1, "descargar"))
+		{
+			descargar(token2, message);
+		}
+		else
+		{
+			strcpy(message, "Obtuve su respuesta");	//Si no hago nada.	
+		}
+		
 	}
 
 	return 0;
@@ -394,6 +445,18 @@ void diario_precipitacion(char* nro_estacion, char *message)
 	//int num=strlen(base[100].numero[1]);
 	//int num2=strlen(nro_estacion);
 	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
+
+	if(message==NULL)
+	{
+		printf("ERROR BUFFER MESSAGE");
+		exit(0);
+	}
+	else if(nro_estacion==NULL)
+	{
+		strcpy(message, "El comando es invalido.");
+		return;
+	}
+
 	while(strcmp(base[i].numero, "\0") 
 		&& strcmp(&base[i].numero[1], nro_estacion))
 	{
@@ -457,6 +520,18 @@ void diario_precipitacion(char* nro_estacion, char *message)
 	//int num=strlen(base[100].numero[1]);
 	//int num2=strlen(nro_estacion);
 	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
+		if(message==NULL)
+		{
+			printf("ERROR BUFFER MESSAGE");
+			exit(0);
+		}
+		else if(nro_estacion==NULL)
+		{
+			strcpy(message, "El comando es invalido.");
+			return;
+		}
+		
+
 		while(strcmp(base[i].numero, "\0") 
 			&& strcmp(&base[i].numero[1], nro_estacion))
 		{
@@ -527,6 +602,17 @@ void diario_precipitacion(char* nro_estacion, char *message)
 	//int num=strlen(base[100].numero[1]);
 	//int num2=strlen(nro_estacion);
 	//printf("comparo %d con %d\n", strlen(base[0].precipitacion), acumulado);
+		if(message==NULL)
+		{
+			printf("ERROR BUFFER MESSAGE");
+			exit(0);
+		}
+		else if(nro_estacion==NULL || nombre_variable==NULL)
+		{
+			strcpy(message, "El comando es invalido.");
+			return;
+		}
+
 		for(i=0; i<20; i++)
 		{
 			token=strstr(nombre_columnas.punteros[i], nombre_variable);
@@ -588,6 +674,73 @@ void diario_precipitacion(char* nro_estacion, char *message)
 
 			printf("\n\n%s\n", message);
 
+			return;
+		}
+
+
+
+
+		void descargar(char * nro_estacion, char * message)
+		{
+			int i;
+			int j;
+			int pid;
+			FILE * fp;
+
+			i=0;
+			if(nro_estacion==NULL)
+			{
+				strcpy(message, "ERROR: NO SE INGRESO NUMERO DE ESTACION");
+				return;
+			}
+			while(strcmp(base[i].numero, "\0") 
+				&& strcmp(&base[i].numero[1], nro_estacion))
+			{
+				i++;
+			}	//Itero hasta encontrar la estacion correcta.
+			if(!strcmp(&base[i].numero[1], nro_estacion))	/* Si encuentro la estacion correcta entonces mando el archivo */
+			{
+
+			/* Creation of file */
+				fp=fopen(FILE_TO_SEND, "w");
+				for(j=0; j<20; j++)
+				{
+					fwrite(nombre_columnas.punteros[j] , 1 , tam_char , fp );
+					fwrite(",", 1, 1, fp);
+				}
+
+				while(!strcmp(&base[i].numero[1], nro_estacion))
+				{
+					for(j=0; j<20; j++)
+					{
+						fwrite(base[i].punteros[j] , 1 , tam_char , fp );
+						fwrite(",", 1, 1, fp);
+					}
+					i++;
+				}
+				fclose(fp);
+			/* Sending file */	
+				pid=fork();
+				if ( pid < 0 ) {
+					perror( "fork" );
+					exit( 1 );
+				}
+			if(pid==0)	/* Proceso hijo */
+				{
+					printf("%d\n", port_number_udp);
+					sendfile_sc(port_number_udp);
+					exit(1);
+				}
+				else
+				{
+					strcpy(message, "Downloading...");	
+				}
+
+			}
+			else	
+			{
+				strcpy(message, "No se encontro la estacion");
+			}
 			return;
 		}
 /*
