@@ -749,6 +749,7 @@ void diario_precipitacion(char* nro_estacion, char *message)
     	printf("Message: %s", message_pipe);
     close(fd[0]);
 
+  	/* Se podria usar un puerto distinto cada vez y mandar el puerto en cuestion al cliente */
     strcpy(message, "Downloading...");	
     printf("\n%s\n", message);
 }
