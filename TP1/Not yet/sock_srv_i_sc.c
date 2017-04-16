@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 
 #define FILE_TO_SEND "datos.csv"
-#define TAM 256
+#define TAM 1024
 
 
 int main( int argc, char *argv[] ) {

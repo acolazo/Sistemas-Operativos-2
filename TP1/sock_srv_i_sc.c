@@ -9,7 +9,7 @@
 #include "openfile.h"
 #endif 
 #include "sock_srv_i_sc.h"
-#define TAM 256
+#define TAM 1024
 
 
 void sendfile_sc( int port_number ) {

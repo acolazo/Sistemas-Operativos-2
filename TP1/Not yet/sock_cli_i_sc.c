@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
-#define TAM 256
+#define TAM 1024
 #define FILENAME "received.csv"
 
 int main( int argc, char *argv[] ) {
@@ -69,7 +69,8 @@ int main( int argc, char *argv[] ) {
 		if(!strcmp(buffer, "END_CODE"))
 			break;
 			
-		fprintf(f_received, "%s", buffer);
+		//fprintf(f_received, "%s", buffer);
+		fwrite(buffer , 1 , TAM , f_received );
 		memset( buffer_send, 0, sizeof( buffer ) );
 		strcpy(buffer_send, "Send more please");
 		n = sendto( sockfd, (void *)buffer_send, TAM, 0, (struct sockaddr *)&dest_addr, tamano_direccion );
