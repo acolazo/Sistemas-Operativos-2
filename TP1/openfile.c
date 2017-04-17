@@ -9,43 +9,25 @@
 
 
 	//https://www.tutorialspoint.com/c_standard_library/c_function_fgets.htm
-/*
-struct datos{
-	char numero[tam_char];
-	char estacion[tam_char];
-	char idlocalidad[tam_char];
-	char fecha[tam_char];
-	char temperatura[tam_char];
-	char humedad[tam_char];
-	char rocio[tam_char];
-	char precipitacion[tam_char];
-	char vel_viento[tam_char];
-	char dir_viento[tam_char];
-	char rafaga_max[tam_char];
-	char presion[tam_char];
-	char d12[tam_char];	//Empezaria desde d0
-	char d13[tam_char];
-	char d14[tam_char];
-	char d15[tam_char];
-	char d16[tam_char];
-	char d17[tam_char];
-	char d18[tam_char];
-	char d19[tam_char];
-	char * punteros[20];
-};
-*/
+
 void inicializopunteros(struct datos * estructura); /* Esta funcion inicializa los punteros de la estructura */
+/**
+ * @brief Funcion que inicializa los punteros de la estructura "data" y los apuntas a sus chars correspondientes
+ *
+ * @param estructura struct datos * que apunte al inicio de la base de datos
+ * 
+ */
 void addData(struct datos * base, int i, int j, char* token);
-/*
-void freememory();
-void openfile();
+/**
+ * @brief Agrega el token correspondiente al char que le corresponde en la estructura data.
+ *
+ * @param base apunta a la base de datos.
+ * @param i corresponde a la estrcutura i del arreglo base
+ * @param j corresponde al char j de la estructura i
+ * @param token es el dato que se va a agregar a la estructura
+ * 
+ */
 
-
-
-	struct datos * base;	//Tiene que ser global asi la pueden usar en otro lados.
-	struct datos nombre_columnas;
-
-*/
 
 void openfile()
 {

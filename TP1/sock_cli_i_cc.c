@@ -10,7 +10,13 @@
 #include "sock_cli_i_sc.h"
 
 void autenticacion_usuario(int sockfd, char* username);
-
+/**
+ * @brief Autentica al usuario.
+ *
+ * @param sockfd es el socket con el que se comunica el cliente.
+ * @param username es el nombre de usuario.
+ * 
+ */
 
 
 int cli_i_cc( int argc, char *argv[] ) {

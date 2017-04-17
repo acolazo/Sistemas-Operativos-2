@@ -22,18 +22,92 @@
 
 
 void addUser(char * user, char * pass);
+/**
+ * @brief Agrega usuario y contraseña a la lista.
+ *
+ * @param user string con nombre de usuario
+ * @param pass string con contraseña
+ * 
+ */
 void printTable();
+/**
+ * @brief Imprime la tabla de usuarios
+ *
+ * 
+ */
 int verify_user(char * buffer, char * message);
+/**
+ * @brief Verifica al usuario y contraseña, devuelve un mensaje de validacion.
+ *
+ * @param buffer es buffer para recibir texto del cliente.
+ * @param message es buffer para enviar mensajes al cliente.
+ * 
+ */
 int commands(char * buffer, char * message);
+/**
+ * @brief Funcion que elige el comando a ejecutar desde el input del usuario.
+ *
+ * @param buffer contiene el input del usuario.
+ * @param message devuelve lo que el usuario espera, o si hubo algun error.
+ * 
+ */
 void deleteLista();
+/**
+ * @brief Elimina la lista de usuarios y contraseñas. Libera el espacio alocado.
+ *
+ * 
+ */
 struct nodo* buscarUser(char * user);
+/**
+ * @brief Busca un usuario en la tabla y si existe, devuelve el nodo que lo contiene.
+ *
+ * @param user string con el nombre de usuario a buscar.
+ * @return Nodo que contiene al usuario o NULL
+ */
 void freeall();
+/**
+ * @brief Libera todo el espacio alocado
+ *
+ *
+ */
 
 void listar(char * message);
+/**
+ * @brief Lista todas las estaciones y sus sensores con datos.
+ *
+ * @param message buffer para enviar mensaje al cliente.
+ *
+ */
 void diario_precipitacion(char* nro_estacion, char *message);
+/**
+ * @brief Devuelve el acumulado diario de determinada estacion.
+ *
+ * @param nro_estacion string con numero de la estacion a buscar.
+ * @param message buffer en el que se envian los datos al cliente.
+ */
 void mensual_precipitacion(char* nro_estacion, char *message);
+/**
+ * @brief Devuelve el acumulado mensual de determinada estacion.
+ *
+ * @param nro_estacion string con numero de la estacion a buscar.
+ * @param message buffer en el que se envian los datos al cliente.
+ */
 void promedio_variable(char* nro_estacion, char* nombre_variable,char *message);
+/**
+ * @brief Devuelve el promedio de determinada variable de determinada estacion.
+ *
+ * @param nro_estacion string con numero de la estacion a buscar.
+ * @param nombre_variable string con nombre de la variable a buscar.
+ * @param message buffer en el que se envian los datos al cliente.
+ */
 void descargar(char * nro_estacion, char * message);
+/**
+ * @brief Transfiere el archivo con los datos de determinada estacion.
+ *
+ * @param nro_estacion string con numero de la estacion a buscar.
+ * @param message buffer en el que se envia mensaje al cliente.
+ */
+
 /*
 Si usuario y contrasenia son correctos, sigue con la ejecucion del proceso hijo. Sino, envia un mensaje de usuario/contrasenia
 y finaliza la ejecucion.
@@ -43,15 +117,15 @@ struct nodo{
 	char username[MAX_LENGTH+1];
 	char password[MAX_LENGTH+1];
 	struct nodo* next;
-};
+};/**< Estructura nodo que contiene un usuario y su contraseña */
 struct tabla_users{
 	int size;
 	struct nodo* first;
-};
+};/**< Estructura que sirve de una lista simplemente enlazada con los nodos que contienen usuarios */
 
 
-struct tabla_users tabla;
-int port_number_udp;
+struct tabla_users tabla;/**< Lista simplemente enlazada de usuarios */
+int port_number_udp;/**< Int con el numero de puerto que se utilizara para levantar el servidor UDP en caso de necestarse */
 
 int srv_i_cc( int argc, char *argv[] ) {
 	int sockfd, newsockfd, puerto, clilen, pid;
