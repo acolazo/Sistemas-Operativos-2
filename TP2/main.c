@@ -16,8 +16,8 @@ struct nodo
 	/* v[par] son muestras de polaridad vertical en fase */
 	/* v[impar] son muestras de polaridad vertical en cuadratura */
 	float * h;
-	/* v[par] son muestras de polaridad horizontal en fase */
-	/* v[impar] son muestras de polaridad hortizontal en cuadratura */
+	/* h[par] son muestras de polaridad horizontal en fase */
+	/* h[impar] son muestras de polaridad hortizontal en cuadratura */
 	struct nodo * next;
 };
 struct lista
@@ -27,6 +27,7 @@ struct lista
 };
 struct lista list;
 
+float autocorrelacion(int nro_gate, int size_filas, int size_columnas, float matrix[size_filas][size_columnas]);
 struct nodo * allocate_memory();
 void free_memory();
 
@@ -41,13 +42,15 @@ int main (int argc, char ** argv)
 
 	list.size=0;
 	list.first=NULL;
-	fp = fopen ("pulsos.iq","r");
+	fp = fopen ("pulsos.iq","rb");
 	if (fp==NULL)
 	{
 		printf("ERROR\n");
 		exit(0);
 	}
+
 	
+	/* Leo pulsos.iq y guardo en cada nodo los datos de un pulso */
 	while(fread(&auxiliar, sizeof(uint16_t), 1, fp) == 1)
 	{
 		actual=allocate_memory();
@@ -60,10 +63,11 @@ int main (int argc, char ** argv)
 
 	/* Armo las matrices de list.size filas (cantidad de pulsos) y 500 columnas (cantidad de gates). */
 	/* Aca ya se puede empezar a usar paralelismo y es un viaje*/
-	float matrix_v_f[list.size][gates];
-	float matrix_v_c[list.size][gates];
-	float matrix_h_f[list.size][gates];
-	float matrix_h_c[list.size][gates];
+	/* Matriz (gate, pulso) */ 
+	float matrix_v_f[gates][list.size];
+	float matrix_v_c[gates][list.size];
+	float matrix_h_f[gates][list.size];
+	float matrix_h_c[gates][list.size];
 	int samples_per_gate;
 	int j;
 	int g;
@@ -75,27 +79,35 @@ int main (int argc, char ** argv)
 		samples_per_gate = 0.5*actual->valid_samples/250;
 		for(g=0; g<gates; g++)
 		{
-			matrix_v_f[i][g]=0;
-			matrix_v_c[i][g]=0;
-			matrix_h_f[i][g]=0;
-			matrix_h_c[i][g]=0;	/* Inicializo en cero */
+			matrix_v_f[g][i]=0;
+			matrix_v_c[g][i]=0;
+			matrix_h_f[g][i]=0;
+			matrix_h_c[g][i]=0;	/* Inicializo en cero */
 			for(j=0; j<samples_per_gate; j++)
 			{
-				matrix_v_f[i][g]+=actual->v[g*samples_per_gate+j*2];
-				matrix_v_c[i][g]+=actual->v[g*samples_per_gate+((j*2)+1)];
-				matrix_h_f[i][g]+=actual->h[g*samples_per_gate+j*2];
-				matrix_h_c[i][g]+=actual->h[g*samples_per_gate+((j*2)+1)];	/* sumatoria */
+				matrix_v_f[g][i]+=actual->v[g*samples_per_gate+j*2];
+				matrix_v_c[g][i]+=actual->v[g*samples_per_gate+((j*2)+1)];
+				matrix_h_f[g][i]+=actual->h[g*samples_per_gate+j*2];
+				matrix_h_c[g][i]+=actual->h[g*samples_per_gate+((j*2)+1)];	/* sumatoria */
 			}
-			matrix_v_f[i][g]/=samples_per_gate;
-			matrix_v_c[i][g]/=samples_per_gate;
-			matrix_h_f[i][g]/=samples_per_gate;
-			matrix_h_c[i][g]/=samples_per_gate;	/* media aritmetica */
+			matrix_v_f[g][i]/=samples_per_gate;
+			matrix_v_c[g][i]/=samples_per_gate;
+			matrix_h_f[g][i]/=samples_per_gate;
+			matrix_h_c[g][i]/=samples_per_gate;	/* media aritmetica */
 		}	/* Armo cada gate del nodo i */
 		actual = actual->next;
 		i++;
 	}
 
 	/* Calculo la autocorrelacion de cada matriz */
+	float r; /* Autocorrelacion de las distintas matrices */
+
+	for(i=0; i<gates; i++)
+	{
+		r=autocorrelacion(i, gates, list.size, matrix_h_c);
+		printf("Autocorrelacion del gate %d es %f\n", i+1, r);
+	}
+
 	/*Prueba*/
 	actual=list.first;
 	while(actual->next != NULL)
@@ -103,6 +115,22 @@ int main (int argc, char ** argv)
 		printf("%d\n", actual->valid_samples);
 		actual=actual->next;
 	}
+
+	printf("Numero float es %f\n", /*list.first->v[0]*/matrix_v_f[0][0]);
+	/*
+
+
+	for(i=0; i<gates; i++)
+	{
+
+
+		for(j=0; j<list.size; j++)
+		{
+			printf("%f ", matrix_h_c[i][j]);
+		}
+		printf("\n");
+	}
+	*/
 	/*Prueba*/
 
 	free_memory();
@@ -133,6 +161,21 @@ struct nodo * allocate_memory()
 
 	list.size++;			/* Incrementa en uno el tamanio de la lista */
 	return actual;
+}
+
+float autocorrelacion(int nro_gate, int size_filas, int size_columnas, float matrix[size_filas][size_columnas])
+{
+	/* size_columas es la cantidad de pulsos */
+	float r;
+	int i;
+
+	r=0;
+	for(i=0; i<size_columnas-1; i++)
+	{
+		r+=matrix[nro_gate][i]*matrix[nro_gate][i+1];
+	}
+	r/=size_columnas;
+	return r;
 }
 
 void free_memory(){
