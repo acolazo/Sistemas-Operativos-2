@@ -111,12 +111,31 @@ int main (int argc, char ** argv)
 		printf("\n\n***********Vertical***********\n\n");
 		for(i=0; i<gates; i++)
 		{
-			printf("Autocorrelacion del gate %d es %f\n", i+1, res2[i]);
+			//printf("Autocorrelacion del gate %d es %f\n", i+1, res2[i]);
 		}
+		printf("Tamanio de un float %d", sizeof(float));
 
-	
+		FILE * file_to_write = fopen("result.iq", "w");
+		
+		fwrite(res, sizeof(float), gates, file_to_write);
+		fwrite(res2, sizeof(float), gates, file_to_write);
+		
+		/* Test */
+		fclose(file_to_write);
+		file_to_write=fopen("result.iq", "r");
+		float res3[gates];
+		float res4[gates];
+		fread(res3, sizeof(float), gates, file_to_write);
+		fread(res4, sizeof(float), gates, file_to_write);
+
+		for(i=0; i<gates; i++)
+			printf("Comparar %f con %f\n", res[i], res3[i]);
+
 		free_memory();
 		fclose (fp);
+		fclose(file_to_write);
+		fp=NULL;
+		file_to_write=NULL;
 		return 0;
 
 	}
