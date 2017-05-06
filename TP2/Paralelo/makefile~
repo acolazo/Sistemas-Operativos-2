@@ -1,7 +1,7 @@
 all: main prueba
 	@echo Compilacion realizada. Ejecutar con ./main
 main: 
-	gcc -g -o main main.c -lm -fopenmp
+	gcc -g -o main main.c -lm
 prueba:
 	gcc -g -o prueba prueba.c -lm -fopenmp
 check:

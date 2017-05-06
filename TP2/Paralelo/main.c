@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include <omp.h>
 
 #define gates 500
+#define N_THREADS 10
 
 
 
@@ -30,6 +32,7 @@ struct lista list;
 void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r);
 struct nodo * allocate_memory();
 void free_memory();
+
 
 int main (int argc, char ** argv)
 {
@@ -71,34 +74,48 @@ int main (int argc, char ** argv)
 	int j;
 	int g;
 	int position;
-	
-	i=0;
-	actual = list.first;
-	while(actual != NULL)
-	{
-		samples_per_gate = 0.5*actual->valid_samples/250;
-		for(g=0; g<gates; g++)
-		{
-			matrix_v[g][i]=0;
-			matrix_h[g][i]=0;	/* Inicializo en cero */
-			/* Media aritmetica */
-			for(j=0; j<samples_per_gate; j++)
-			{
-				position=(g*samples_per_gate)+(j*2);
-				matrix_v[g][i]=matrix_v[g][i]+sqrt(pow(actual->v[position],2)+pow(actual->v[position+1],2));
-				matrix_h[g][i]=matrix_h[g][i]+sqrt(pow(actual->h[position],2)+pow(actual->h[position+1],2));
-			}
-			matrix_h[g][i]/=samples_per_gate;
-			matrix_v[g][i]/=samples_per_gate;	
-			
-		}	/* Armo cada gate del nodo i */
-			actual = actual->next;
-			i++;
-		}
+	int starting_gate;
+	int finish_gate;
+	int gates_per_thread = gates/N_THREADS;
 
+	#pragma omp parallel num_threads(N_THREADS) private(starting_gate, finish_gate, samples_per_gate, position, g, i, j, actual)
+	{
+		i=0;
+		actual = list.first;	
+		starting_gate=gates_per_thread*omp_get_thread_num();
+		finish_gate=starting_gate+gates_per_thread;
+	//omp_get_thread_num() -- Thread id.
+	/* Cada Thread va a calcular determinados gates de todos los nodos */
+	/* Gates/N_THREADS */
+	/* Las variables g e i son compartidas? */
+	/* Que variables son especificas del thread y cuales son compartidaaas!!! ???? >(*/
+		while(actual != NULL)
+		{
+
+			samples_per_gate = 0.5*actual->valid_samples/250;
+			for(g=starting_gate; g<finish_gate; g++)
+			{
+				matrix_v[g][i]=0;
+				matrix_h[g][i]=0;	/* Inicializo en cero */
+			/* Media aritmetica */
+				for(j=0; j<samples_per_gate; j++)
+				{
+					position=(g*samples_per_gate)+(j*2);
+					matrix_v[g][i]=matrix_v[g][i]+sqrt(pow(actual->v[position],2)+pow(actual->v[position+1],2));
+					matrix_h[g][i]=matrix_h[g][i]+sqrt(pow(actual->h[position],2)+pow(actual->h[position+1],2));
+				}
+				matrix_h[g][i]/=samples_per_gate;
+				matrix_v[g][i]/=samples_per_gate;	
+
+		}	/* Armo cada gate del nodo i */
+				actual = actual->next;
+				i++;
+			}
+		}
 	/* Calculo la autocorrelacion de cada matriz */
 	/* Autocorrelacion de las distintas matrices */
 
+		
 		float res[gates];
 		float res2[gates];
 		autocorrelacion(list.size, matrix_h, res);
@@ -113,13 +130,12 @@ int main (int argc, char ** argv)
 		{
 			//printf("Autocorrelacion del gate %d es %f\n", i+1, res2[i]);
 		}
-		printf("Tamanio de un float %d", sizeof(float));
 
 		FILE * file_to_write = fopen("result.iq", "w");
-		
+
 		fwrite(res, sizeof(float), gates, file_to_write);
 		fwrite(res2, sizeof(float), gates, file_to_write);
-		
+
 		/* Test */
 		fclose(file_to_write);
 		file_to_write=fopen("result.iq", "r");
@@ -136,6 +152,7 @@ int main (int argc, char ** argv)
 		fclose(file_to_write);
 		fp=NULL;
 		file_to_write=NULL;
+		
 		return 0;
 
 	}
@@ -169,15 +186,23 @@ int main (int argc, char ** argv)
 	/* size_columas es la cantidad de pulsos */
 		int i;
 		int j;
-
-		for(i=0; i<gates; i++)
+		int starting_gate;
+		int finish_gate;
+		int gates_per_thread;
+		gates_per_thread=gates/N_THREADS;
+	#pragma omp parallel num_threads(N_THREADS) private(i, j, starting_gate, finish_gate)
 		{
-			r[i]=0;
-			for(j=0; j<size_columnas-1; j++)
+			starting_gate=gates_per_thread*omp_get_thread_num();
+			finish_gate=starting_gate+gates_per_thread;
+			for(i=starting_gate; i<gates_per_thread; i++)
 			{
-				r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
+				r[i]=0;
+				for(j=0; j<size_columnas-1; j++)
+				{
+					r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
+				}
+				r[i]=r[i]/size_columnas;		
 			}
-			r[i]=r[i]/size_columnas;		
 		}
 		return;
 	}
