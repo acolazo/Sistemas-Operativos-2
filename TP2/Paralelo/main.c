@@ -4,9 +4,10 @@
 #include <stdint.h>
 #include <math.h>
 #include <omp.h>
+#include <time.h>
 
 #define gates 500
-#define N_THREADS 10
+#define N_THREADS 50
 
 
 
@@ -36,6 +37,16 @@ void free_memory();
 
 int main (int argc, char ** argv)
 {
+
+	/* Start counting time */
+	int asd;
+	for(asd=0; asd<30; asd++)
+	{
+	clock_t start;
+	clock_t end;
+	double elapsed_time;
+	start=clock();
+
 
 	FILE * fp;
 	int i;
@@ -120,6 +131,7 @@ int main (int argc, char ** argv)
 		float res2[gates];
 		autocorrelacion(list.size, matrix_h, res);
 		autocorrelacion(list.size, matrix_v, res2);
+		/*
 		for(i=0; i<gates; i++)
 		{
 			printf("Autocorrelacion del gate %d es %f\n", i+1, res[i]);
@@ -130,7 +142,7 @@ int main (int argc, char ** argv)
 		{
 			//printf("Autocorrelacion del gate %d es %f\n", i+1, res2[i]);
 		}
-
+	*/
 		FILE * file_to_write = fopen("result.iq", "w");
 
 		fwrite(res, sizeof(float), gates, file_to_write);
@@ -143,9 +155,10 @@ int main (int argc, char ** argv)
 		float res4[gates];
 		fread(res3, sizeof(float), gates, file_to_write);
 		fread(res4, sizeof(float), gates, file_to_write);
-
+		/*
 		for(i=0; i<gates; i++)
 			printf("Comparar %f con %f\n", res[i], res3[i]);
+			*/
 
 		free_memory();
 		fclose (fp);
@@ -153,6 +166,11 @@ int main (int argc, char ** argv)
 		fp=NULL;
 		file_to_write=NULL;
 		
+		/* Finish counting */
+		end = clock();
+		elapsed_time = (end-start)/(double)CLOCKS_PER_SEC ;
+		printf("%lf\n", elapsed_time);
+	}
 		return 0;
 
 	}
@@ -224,3 +242,6 @@ int main (int argc, char ** argv)
 
 		return;
 	}
+
+
+	//http://stackoverflow.com/questions/5644730/c-measuring-computing-time
