@@ -39,9 +39,7 @@ int main (int argc, char ** argv)
 {
 
 	/* Start counting time */
-	int asd;
-	for(asd=0; asd<30; asd++)
-	{
+	
 	clock_t start;
 	clock_t end;
 	double elapsed_time;
@@ -170,7 +168,7 @@ int main (int argc, char ** argv)
 		end = clock();
 		elapsed_time = (end-start)/(double)CLOCKS_PER_SEC ;
 		printf("%lf\n", elapsed_time);
-	}
+		
 		return 0;
 
 	}
