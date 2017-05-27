@@ -1,11 +1,15 @@
 #!/usr/bin/perl
 use CGI;
+
+
+
 $var = new CGI;
 
 open($data, '<', 'datos_meteorologicos.CSV');
 @datos = <$data>;
 @datos = split(",",@datos[$i]);
 @datos[0] = "Numero";
+close ($data);
 
 $inicio = 0;
 $i=20; 
@@ -74,10 +78,24 @@ elsif($var -> param('operacion') ==3){
     $contador++;
   }
   $promedio = $promedio / $contador;
-  $message = "El promedio de la $nombre_variable es $promedio";
+  $message = "<p>El promedio de la $nombre_variable es $promedio</p>";
 }
 else{
   #descargar
+  $title = "Descarga";
+  $filename = 'tmp.CSV';
+  open($fh, '>', $filename) or $message="<p>Could not open file '$filename' $!</p>";
+  while(@datos[$i] == $estacion){
+    $j=0;
+    while($salto_nodo != $j){
+      print $fh "@datos[$i + $j],";
+      $j++;
+    }
+    $i=$i + $salto_nodo;
+  }
+  close $fh;
+  $message = "<p><a href='download.pl'>Click aqui para descargar</a></p>";
+  
 }
 $title = $title . " de la estacion $nombre_estacion";
 
@@ -114,7 +132,7 @@ $html = "Content-Type: text/html
 
 <div class='page-header'>
 <h1>$title</h1>
-<p>$message</p>
+$message
 </body>
 </html>";
 

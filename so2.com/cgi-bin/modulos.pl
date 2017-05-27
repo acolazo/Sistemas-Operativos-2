@@ -1,4 +1,29 @@
 #!/usr/bin/perl
+
+@lista_modulos=`lsmod`;
+@modulos = split (" ", shift @lista_modulos);
+
+$table = "<table class='table-striped' style='width:100%'>
+<tr>
+<th>@modulos[0]</th>
+<th>@modulos[1]</th>
+<th>@modulos[2] @modulos[3]</th>
+</tr>
+";
+foreach (@lista_modulos) {
+  my @modulos = split(" ", $_);
+  $table .= "
+  <tr>
+  <td>@modulos[0]</td>
+  <td>@modulos[1]</td>
+  <td>@modulos[2] @modulos[3]</td>
+  </tr>
+  ";
+}
+$table .= "</table>";
+
+
+
 $html = "Content-Type: text/html
 
 <html>
@@ -15,21 +40,22 @@ $html = "Content-Type: text/html
 
 <body>
 <nav class='navbar navbar-inverse'>
-  <div class='container-fluid'>
-    <div class='navbar-header'>
-      <a class='navbar-brand' href='#'>Estacion Meteorologica</a>
-    </div>
-    <ul class='nav navbar-nav'>
-      <li class='active'><a href='home.pl'>Home</a></li>
-      <li><a href='consola.pl'>Consola</a></li>
-      <li><a href='modulos.pl'>Modulos</a></li>
-    </ul>
-  </div>
+<div class='container-fluid'>
+<div class='navbar-header'>
+<a class='navbar-brand' href='#'>Estacion Meteorologica</a>
+</div>
+<ul class='nav navbar-nav'>
+<li class='active'><a href='home.pl'>Home</a></li>
+<li><a href='consola.pl'>Consola</a></li>
+<li><a href='modulos.pl'>Modulos</a></li>
+</ul>
+</div>
 </nav>
 
 <div class='page-header'>
 <h1>Modulos instalados</h1>
 </div>
+<div>$table</div>
 
 
 </body>
