@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+
 @lista_modulos=`lsmod`;
 @modulos = split (" ", shift @lista_modulos);
 
@@ -53,7 +54,12 @@ $html = "Content-Type: text/html
 </nav>
 
 <div class='page-header'>
-<h1>Modulos instalados</h1>
+<h1>Upload New Module</h1>
+<form action='upload.pl' method='post' enctype='multipart/form-data'> 
+<p>Module to Upload: <input type='file' name='photo' /></p> 
+<p><input type='submit' name='Submit' value='Submit Form' /></p> 
+</form> 
+<h1>Modulos instalados</h1>	
 </div>
 <div>$table</div>
 
@@ -62,3 +68,4 @@ $html = "Content-Type: text/html
 </html>";
 
 print $html;
+

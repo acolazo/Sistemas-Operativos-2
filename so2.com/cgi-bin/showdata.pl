@@ -2,7 +2,6 @@
 use CGI;
 
 
-
 $var = new CGI;
 
 open($data, '<', 'datos_meteorologicos.CSV');
@@ -94,7 +93,9 @@ else{
     $i=$i + $salto_nodo;
   }
   close $fh;
-  $message = "<p><a href='download.pl'>Click aqui para descargar</a></p>";
+
+
+  $message = "<p><a href='tmp.CSV'>Click aqui para descargar</a></p>";
   
 }
 $title = $title . " de la estacion $nombre_estacion";
