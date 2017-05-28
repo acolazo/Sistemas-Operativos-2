@@ -1,28 +1,37 @@
 #!/usr/bin/perl
 
+use CGI;
+use CGI::Carp qw ( fatalsToBrowser );
+use File::Basename;
 
-@lista_modulos=`lsmod`;
-@modulos = split (" ", shift @lista_modulos);
+$q = new CGI;
+$local_path = `pwd`;
 
-$table = "<table class='table-striped' style='width:100%'>
-<tr>
-<th>@modulos[0]</th>
-<th>@modulos[1]</th>
-<th>@modulos[2] @modulos[3]</th>
-</tr>
-";
-foreach (@lista_modulos) {
-  my @modulos = split(" ", $_);
-  $table .= "
-  <tr>
-  <td>@modulos[0]</td>
-  <td>@modulos[1]</td>
-  <td>@modulos[2] @modulos[3]</td>
-  </tr>
-  ";
+$filename = $q -> param ('module') ;
+($name, $path, $extension) = fileparse($filename, '\.[^\.]*');
+
+if ($extension eq ".ko"){
+	$filename = $name . $extension;
+	my $upload_filehandle = $q->upload("module");
+	open ( UPLOADFILE, ">$filename" ) or die "$!"; 
+	binmode UPLOADFILE;
+	while ( <$upload_filehandle> )
+	{
+		print UPLOADFILE;
+	}
+
+	close UPLOADFILE;
+
+	$message = "<p>Su archivo se ha subido con exito</p>
+	<form action='kernel.pl' method='post' enctype='multipart/form-data'> 
+	<input name='filename' type='hidden' value=$filename />
+	<p><input type='submit' name='operation' value='Load' /></p> 
+	<p><input type='submit' name='operation' value='Unload' /></p>
+	</form>";
 }
-$table .= "</table>";
-
+else{
+	$message = "<p>La extension es incorrecta. Suba un archivo con extension .ko</p>";
+}
 
 
 $html = "Content-Type: text/html
@@ -54,18 +63,15 @@ $html = "Content-Type: text/html
 </nav>
 
 <div class='page-header'>
-<h1>Upload New Module</h1>
-<form action='myupload.pl' method='post' enctype='multipart/form-data'> 
-<p>Module to Upload: <input type='file' name='module' /></p> 
-<p><input type='submit' name='Submit' value='Submit Form' /></p> 
-</form> 
-<h1>Modulos instalados</h1>	
+<h1>Kernel Module</h1>
 </div>
-<div>$table</div>
+
+$message
+
 
 
 </body>
-</html>";
+</html>
+";
 
 print $html;
-

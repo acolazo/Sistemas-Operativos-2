@@ -1,29 +1,29 @@
 #!/usr/bin/perl
 
+use CGI;
+use CGI::Carp qw ( fatalsToBrowser );
+use File::Basename;
 
-@lista_modulos=`lsmod`;
-@modulos = split (" ", shift @lista_modulos);
 
-$table = "<table class='table-striped' style='width:100%'>
-<tr>
-<th>@modulos[0]</th>
-<th>@modulos[1]</th>
-<th>@modulos[2] @modulos[3]</th>
-</tr>
-";
-foreach (@lista_modulos) {
-  my @modulos = split(" ", $_);
-  $table .= "
-  <tr>
-  <td>@modulos[0]</td>
-  <td>@modulos[1]</td>
-  <td>@modulos[2] @modulos[3]</td>
-  </tr>
-  ";
+$q = new CGI;
+
+$operation = $q -> param('operation');
+$filename = $q -> param('filename');
+
+if ($operation eq Load){
+	system("sudo /sbin/insmod $filename") == 0
+	or $mensaje = "system failed $?";
+	#terminal = `sudo insmod $filename`;
+	$message = "<p>Se ha instalado el modulo</p>";
 }
-$table .= "</table>";
+elsif ($operation eq Unload){
+	system("sudo /sbin/rmmod $filename") == 0
+	or $mensaje = "system failed $?";
+	#@terminal = `sudo rmmod $filename`;
+	$message = "<p>Se ha removido el modulo</p>";
+}
 
-
+$path = `pwd`;
 
 $html = "Content-Type: text/html
 
@@ -54,18 +54,25 @@ $html = "Content-Type: text/html
 </nav>
 
 <div class='page-header'>
-<h1>Upload New Module</h1>
-<form action='myupload.pl' method='post' enctype='multipart/form-data'> 
-<p>Module to Upload: <input type='file' name='module' /></p> 
-<p><input type='submit' name='Submit' value='Submit Form' /></p> 
-</form> 
-<h1>Modulos instalados</h1>	
+<h1>Kernel Module</h1>
 </div>
-<div>$table</div>
 
 
+<form action='kernel.pl' method='post' enctype='multipart/form-data'> 
+<input type = 'hidden' name='filename' value=$filename />
+<p><input type='submit' name='operation' value='Load' /></p> 
+<p><input type='submit' name='operation' value='Unload' /></p> 
+</form>
+
+
+<p>La operacion es $operation y el nombre del archivo es $filename</p>
+$message
+
+<p>Terminal: @terminal</p>
+<p>$mensaje</p>
+<p>$path</p>
 </body>
-</html>";
+</html>
+";
 
 print $html;
-

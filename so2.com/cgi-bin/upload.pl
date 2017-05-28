@@ -1,17 +1,16 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl
 
-use strict;
 use CGI;
 use CGI::Carp qw ( fatalsToBrowser );
 use File::Basename;
 
 $CGI::POST_MAX = 1024 * 5000;
 my $safe_filename_characters = "a-zA-Z0-9_.-";
-my $upload_dir = "/home/mywebsite/htdocs/upload";
+my $upload_dir = "/Home/www/so2/cgi-bin";
 
 my $query = new CGI;
-my $filename = $query->param("photo");
-my $email_address = $query->param("email_address");
+my $filename = $query->param("module");
+
 
 if ( !$filename )
 {
@@ -59,9 +58,6 @@ img {border: none;}
 </head>
 <body>
 <p>Thanks for uploading your photo!</p>
-<p>Your email address: $email_address</p>
-<p>Your photo:</p>
-<p><img src='/upload/$filename' alt='Photo' /></p>
 </body>
 </html>
 ";
