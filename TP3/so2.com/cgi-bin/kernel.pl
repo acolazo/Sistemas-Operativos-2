@@ -13,7 +13,7 @@ $filename = $q -> param('filename');
 if ($operation eq Load){
 	system("sudo /sbin/insmod $filename") == 0
 	or $mensaje = "system failed $?";
-	#terminal = `sudo insmod $filename`;
+	#@terminal = `sudo insmod $filename`;
 	$message = "<p>Se ha instalado el modulo</p>";
 }
 elsif ($operation eq Unload){
@@ -23,7 +23,6 @@ elsif ($operation eq Unload){
 	$message = "<p>Se ha removido el modulo</p>";
 }
 
-$path = `pwd`;
 
 $html = "Content-Type: text/html
 
@@ -68,9 +67,7 @@ $html = "Content-Type: text/html
 <p>La operacion es $operation y el nombre del archivo es $filename</p>
 $message
 
-<p>Terminal: @terminal</p>
 <p>$mensaje</p>
-<p>$path</p>
 </body>
 </html>
 ";
