@@ -22,8 +22,8 @@ $html = "Content-Type: text/html
       <a class='navbar-brand' href='#'>Estacion Meteorologica</a>
     </div>
     <ul class='nav navbar-nav'>
-      <li class='active'><a href='home.pl'>Home</a></li>
-      <li><a href='consola.pl'>Consola</a></li>
+      <li><a href='home.pl'>Home</a></li>
+      <li class='active'><a href='consola.pl'>Consola</a></li>
       <li><a href='modulos.pl'>Modulos</a></li>
     </ul>
   </div>
@@ -72,7 +72,7 @@ $html = "Content-Type: text/html
 </select>
 <input type='submit' value='Ejecutar'>
 </form>
- 
+</div>
 <p>@datos[21]</p>
 
 </body>
