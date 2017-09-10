@@ -8,5 +8,4 @@ check:
 	cppcheck main.c
 clean:
 	rm main
-	rm prueba
 
