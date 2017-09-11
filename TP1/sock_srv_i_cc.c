@@ -21,6 +21,8 @@
 
 
 
+void help(char * message);
+
 void addUser(char * user, char * pass);
 /**
  * @brief Agrega usuario y contraseña a la lista.
@@ -293,6 +295,10 @@ int commands(char * buffer, char * message){
 		freeall();
 		strcpy(message, "Se libera la memoria");
 		printf("Se libera la memoria\n");
+	}
+	else if(!strcmp("help", elemento)){
+		help(message);
+		printf("Se ejecuto el comando help\n");
 	}
 	else if(!strcmp("listar", elemento)){
 		listar(message);
@@ -848,3 +854,8 @@ de cada estación (no_estacion: promedio.
 
 
 //Hacer comando help y lista de comandos.
+
+void help(char * message){
+	strcpy(message, "Comandos:\nlistar: lista todas las estaciones\nfree: libera la memoria\ndesconectar: el usuario se desconecta del servidor\ndescargar nro_estacion\ndiario_precipitacion nro_estacion\nmensual_precipitacion nro_estacion\npromedio_variable nro_estacion nombre_variable\n");
+	return;
+}
