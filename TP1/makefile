@@ -11,4 +11,4 @@ checkcli:
 clean:
 	rm cli
 	rm srv
-
+#-Wall -pedantic -Werror 

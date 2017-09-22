@@ -15,7 +15,7 @@ void receive_file(struct hostent * server_ip, int puerto_udp) {
 	char buffer[TAM];
 	char buffer_send[TAM];
 	FILE* f_received;
-
+	int contador = 0;
 	f_received=fopen(FILENAME, "w");
 	if(f_received==NULL)
 	{
@@ -84,6 +84,8 @@ void receive_file(struct hostent * server_ip, int puerto_udp) {
 			perror( "Escritura en socket" );
 			exit( 1 );
 		}
+		//printf("Recibi el numero %d\n", contador);
+		contador++;
 	}
 	fclose(f_received);
 	close(sockfd);

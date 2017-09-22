@@ -197,6 +197,7 @@ int srv_i_cc( int argc, char *argv[] ) {
 
 	listen( sockfd, 5 );
 	clilen = sizeof( cli_addr );
+	
 
 	while( 1 ) {
 		newsockfd = accept( sockfd, (struct sockaddr *) &cli_addr, &clilen );

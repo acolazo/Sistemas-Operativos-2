@@ -19,7 +19,7 @@ void sendfile_sc( int port_number , int *fd) {
 	struct sockaddr_in serv_addr;
 	int n;
 	FILE * file_send;
-
+	int contador = 0;
 
 
 	file_send=fopen(FILE_TO_SEND, "r");
@@ -79,6 +79,9 @@ void sendfile_sc( int port_number , int *fd) {
 			perror( "escritura en socket" );
 			exit( 1 );
 		}
+
+		//printf("Mandando el numero %d\n", contador);
+		contador++;
 	}
 	n = sendto( sockfd, (void *)"END_CODE", 9, 0, (struct sockaddr *)&serv_addr, tamano_direccion  );
 	if ( n < 0 ) {
