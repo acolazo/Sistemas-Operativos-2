@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include "sock_srv_i_cc.h"
 #include "variables_comunes.h"
@@ -130,7 +131,8 @@ struct tabla_users tabla;/**< Lista simplemente enlazada de usuarios */
 int port_number_udp;/**< Int con el numero de puerto que se utilizara para levantar el servidor UDP en caso de necestarse */
 
 int srv_i_cc( int argc, char *argv[] ) {
-	int sockfd, newsockfd, puerto, clilen, pid;
+	int sockfd, newsockfd, puerto, pid;
+	socklen_t clilen;
 	char buffer[TAM];
 	struct sockaddr_in serv_addr, cli_addr;
 	int n;
@@ -673,8 +675,6 @@ void diario_precipitacion(char* nro_estacion, char *message)
 		double numero;
 		char s_promedio[20];
 		char *token;
-		char *token1;
-		char *token2;
 		variable=-1;
 		promedio=0;
 		numero=0;
@@ -802,7 +802,7 @@ void diario_precipitacion(char* nro_estacion, char *message)
 				fclose(fp);
 				/*  Synchronization with pipe */
 				char message_pipe[10];
-				int status, ret, fd[2];
+				int ret, fd[2];
 
 				ret = pipe(fd);
 				if(ret == -1)

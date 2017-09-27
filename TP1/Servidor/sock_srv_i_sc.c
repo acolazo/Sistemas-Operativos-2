@@ -4,6 +4,7 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #ifndef OPENFILE_H
 #define OPENFILE_H
 #include "openfile.h"
@@ -13,7 +14,8 @@
 
 
 void sendfile_sc( int port_number , int *fd) {
-	int sockfd, puerto, tamano_direccion;
+	int sockfd, puerto;
+	socklen_t tamano_direccion;
 	char buffer[ TAM ];
 	char buffer_send [TAM];
 	struct sockaddr_in serv_addr;

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <netdb.h> 
 #include "variables_comunes.h"
@@ -20,10 +22,14 @@ void autenticacion_usuario(int sockfd, char* username);
 
 
 int cli_i_cc( int argc, char *argv[] ) {
-	int sockfd, puerto, n;
+	int sockfd, puerto, n, a;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
+	int * wait_time;
 	int terminar = 0;
+
+	a = 10;
+	wait_time = &a;
 
 	char buffer[TAM];
 	if ( argc < 3 ) {
@@ -60,7 +66,6 @@ int cli_i_cc( int argc, char *argv[] ) {
 		memset( buffer, '\0', TAM );
 		fgets( buffer, TAM-1, stdin );
 
-		printf("%d\n", strlen(buffer));
 		while(strlen(buffer)==1)
 		{
 			printf("Please type something.\n");
@@ -92,7 +97,7 @@ int cli_i_cc( int argc, char *argv[] ) {
 		if(!strcmp(buffer, "Downloading..."))
 		{
 			printf("Se bloquea la interfaz hasta que se descargue el archivo\n");
-			wait(10);
+			wait(wait_time);
 			receive_file(server, puerto+1);
 			printf("\nSe termino de descargar el archivo\n");
 		}

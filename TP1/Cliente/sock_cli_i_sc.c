@@ -3,18 +3,24 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <netdb.h> 
 #define TAM 1024
 #define FILENAME "received.csv"
 
 void receive_file(struct hostent * server_ip, int puerto_udp) {
-	int sockfd, puerto, n, tamano_direccion;
+	int sockfd, puerto, n;
+	socklen_t tamano_direccion;
 	struct sockaddr_in dest_addr;
 	struct hostent *server;
 	char buffer[TAM];
 	char buffer_send[TAM];
 	FILE* f_received;
+
+
+	
 	int contador = 0;
 	f_received=fopen(FILENAME, "w");
 	if(f_received==NULL)
