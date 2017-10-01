@@ -42,7 +42,7 @@ int main (int argc, char ** argv)
 	int i;
 	uint16_t auxiliar;
 	struct nodo * actual;
-	struct nodo * anterior;
+
 	
 
 

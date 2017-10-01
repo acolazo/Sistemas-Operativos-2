@@ -45,7 +45,6 @@ int main (int argc, char ** argv)
 	int i;
 	uint16_t auxiliar;
 	struct nodo * actual;
-	struct nodo * anterior;
 	
 
 
@@ -60,15 +59,21 @@ int main (int argc, char ** argv)
 
 	
 	/* Leo pulsos.iq y guardo en cada nodo los datos de un pulso */
-
+	int a;
+	int b;
 	while(fread(&auxiliar, sizeof(uint16_t), 1, fp) == 1)
 	{
 		actual=allocate_memory();
 		actual->valid_samples=auxiliar;
 		actual->v = (float *)calloc(2*auxiliar, sizeof(float));
 		actual->h = (float *)calloc(2*auxiliar, sizeof(float));
-		fread(actual->v, sizeof(float), 2*auxiliar, fp);
-		fread(actual->h, sizeof(float), 2*auxiliar, fp);
+		a=fread(actual->v, sizeof(float), 2*auxiliar, fp);
+		b=fread(actual->h, sizeof(float), 2*auxiliar, fp);
+		if(a != 2*auxiliar || b != 2*auxiliar){
+			printf("Error leyendo archivo\n");
+			exit(0);
+		}
+
 	}
 
 	fclose (fp);
@@ -105,7 +110,7 @@ int main (int argc, char ** argv)
 #pragma omp parallel private(i, j, g, pow1, pow2, sqr, position, samples_per_gate, cantidad_pulsos) shared(matrix_v, matrix_h, resv, resh, index)
 	{
 
-	cantidad_pulsos = list.size;
+		cantidad_pulsos = list.size;
 
 
 #pragma omp for
@@ -131,7 +136,7 @@ int main (int argc, char ** argv)
 
 				position += 2;
 			}
-		
+
 
 			matrix_h[g][i]= matrix_h[g][i] / samples_per_gate;
 			matrix_v[g][i]= matrix_v[g][i] / samples_per_gate;
@@ -153,21 +158,21 @@ int main (int argc, char ** argv)
 			resv[i]=resv[i]/cantidad_pulsos;		
 			resh[i]=resh[i]/cantidad_pulsos;		
 		}
-}
+	}
 		//autocorrelacion(list.size, matrix_h, res);
 		//autocorrelacion(list.size, matrix_v, res2);
 
-		
+
 		/* Termino la parte paralela */
 		/* Termino el calculo de autocorrelacion */
-		
+
 		/* Escribo el archivo de salida */
-		
-		FILE * file_to_write = fopen("result_paralelo.iq", "w");
-		fwrite(resh, sizeof(float), gates, file_to_write);
-		fwrite(resv, sizeof(float), gates, file_to_write);
-		fclose(file_to_write);
-		file_to_write=NULL;
+
+	FILE * file_to_write = fopen("result_paralelo.iq", "w");
+	fwrite(resh, sizeof(float), gates, file_to_write);
+	fwrite(resv, sizeof(float), gates, file_to_write);
+	fclose(file_to_write);
+	file_to_write=NULL;
 
 
 		/* Imprimir en consola */		
@@ -182,75 +187,75 @@ int main (int argc, char ** argv)
 			printf("%d: %f\n", i, matrix_v[0][i]);
 		}
 		*/
-		
 
 
-		free_memory();
 
-		double time = omp_get_wtime() - start_time;
-		printf("El tiempo de ejecucion es: %lf\n", time);
-		return 0;
+	free_memory();
 
-	}
+	double time = omp_get_wtime() - start_time;
+	printf("El tiempo de ejecucion es: %lf\n", time);
+	return 0;
 
-	struct nodo * allocate_memory()
-	{
-		static struct nodo * anterior;
-		struct nodo * actual;
+}
+
+struct nodo * allocate_memory()
+{
+	static struct nodo * anterior;
+	struct nodo * actual;
 
 
 	actual = (struct nodo *)malloc(sizeof(struct nodo));	/* Reservo la memoria necesaria */
-		if(actual == NULL)
-			printf("ERROR AL RESERVAR BLOQUE DE MEMORIA\n");
+	if(actual == NULL)
+		printf("ERROR AL RESERVAR BLOQUE DE MEMORIA\n");
 	if(list.first == NULL)	/* Si no hay elemento en la lista, este sera el primero */
-		{
-			list.first = actual;
-		}
+	{
+		list.first = actual;
+	}
 	else					/* Sino el anterior apuntara al nuevo nodo */
-		{
-			anterior -> next = actual;
-		}
+	{
+		anterior -> next = actual;
+	}
 	actual->next = NULL;	/* El nuevo nodo apunta a NULL */
-		anterior = actual;
+	anterior = actual;
 
 	list.size++;			/* Incrementa en uno el tamanio de la lista */
-		return actual;
-	}
+	return actual;
+}
 
-	void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r)
-	{
+void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r)
+{
 	/* size_columas es la cantidad de pulsos */
-		int i;
-		int j;
+	int i;
+	int j;
 
 
 
-		for(i=0; i<gates; i++)
+	for(i=0; i<gates; i++)
+	{
+		r[i]=0;
+		for(j=0; j<size_columnas-1; j++)
 		{
-			r[i]=0;
-			for(j=0; j<size_columnas-1; j++)
-			{
-				r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
-			}
-			r[i]=r[i]/size_columnas;		
+			r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
 		}
-		return;
+		r[i]=r[i]/size_columnas;		
 	}
+	return;
+}
 
-	void free_memory(){
-		struct nodo * first;
-		struct nodo * next;
-		first=list.first;
-		if(first==NULL)
-			return;
-		next=first->next;
-		while(next!=NULL){
-			free(first);
-			first=next;
-			next=first->next;
-		}
+void free_memory(){
+	struct nodo * first;
+	struct nodo * next;
+	first=list.first;
+	if(first==NULL)
+		return;
+	next=first->next;
+	while(next!=NULL){
 		free(first);
-		list.first=NULL;
-
-		return;
+		first=next;
+		next=first->next;
 	}
+	free(first);
+	list.first=NULL;
+
+	return;
+}
