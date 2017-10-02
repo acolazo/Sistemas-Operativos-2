@@ -9,7 +9,7 @@
 #define gates 500
 #define resolution 0.5
 #define rango 250
-#define THREADS 2
+#define THREADS 4
 
 
 
