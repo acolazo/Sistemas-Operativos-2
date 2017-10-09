@@ -150,7 +150,7 @@ int main (int argc, char ** argv)
 		{
 			resv[i]=0;
 			resh[i]=0;
-			for(j=0; j<cantidad_pulsos; j++)
+			for(j=0; j<cantidad_pulsos-1; j++)
 			{
 				resv[i]=resv[i]+(matrix_v[i][j]*matrix_v[i][j+1]);
 				resh[i]=resh[i]+(matrix_h[i][j]*matrix_h[i][j+1]);
@@ -175,13 +175,17 @@ int main (int argc, char ** argv)
 	file_to_write=NULL;
 
 
-		/* Imprimir en consola */		
+		/* Imprimir en consola */	
+		/* (gate, pulso) */	
+		
 		/*
 		for(i=0; i<gates; i++)
 		{
 			printf("Autocorrelacion del gate %d es %e\n", i+1, resh[i]);
 		}
 		*/
+		
+
 		/*
 		for(i=0; i<list.size; i++){
 			printf("%d: %f\n", i, matrix_v[0][i]);
@@ -193,7 +197,7 @@ int main (int argc, char ** argv)
 	free_memory();
 
 	double time = omp_get_wtime() - start_time;
-	printf("El tiempo de ejecucion es: %lf\n", time);
+	printf("El tiempo de ejecucion es: %lf segundos\n", time);
 	return 0;
 
 }
@@ -222,25 +226,6 @@ struct nodo * allocate_memory()
 	return actual;
 }
 
-void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r)
-{
-	/* size_columas es la cantidad de pulsos */
-	int i;
-	int j;
-
-
-
-	for(i=0; i<gates; i++)
-	{
-		r[i]=0;
-		for(j=0; j<size_columnas-1; j++)
-		{
-			r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
-		}
-		r[i]=r[i]/size_columnas;		
-	}
-	return;
-}
 
 void free_memory(){
 	struct nodo * first;
@@ -259,3 +244,26 @@ void free_memory(){
 
 	return;
 }
+
+/*
+void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r)
+{
+	//size_columas es la cantidad de pulsos 
+	int i;
+	int j;
+
+
+
+	for(i=0; i<gates; i++)
+	{
+		r[i]=0;
+		for(j=0; j<size_columnas-1; j++)
+		{
+			r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
+		}
+		r[i]=r[i]/size_columnas;		
+	}
+	return;
+}
+
+*/

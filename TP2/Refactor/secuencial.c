@@ -105,6 +105,9 @@ int main (int argc, char ** argv)
 			matrix_h[g][i] = 0;/* Inicializo en cero */
 			/* Media aritmetica */
 			position = g * samples_per_gate * 2; /* el 2 es porque tenemos la parte real y la imaginaria */
+
+			//printf("%d\n", position);
+
 			for(j=0; j<samples_per_gate; j++)
 			{
 				//position=(g*samples_per_gate*2)+(j*2);
@@ -119,8 +122,10 @@ int main (int argc, char ** argv)
 				matrix_h[g][i]+= sqr;
 
 				position += 2;
+
 			}
 		
+			
 
 			matrix_h[g][i]= matrix_h[g][i] / samples_per_gate;
 			matrix_v[g][i]= matrix_v[g][i] / samples_per_gate;
@@ -135,7 +140,7 @@ int main (int argc, char ** argv)
 		{
 			resv[i]=0;
 			resh[i]=0;
-			for(j=0; j<cantidad_pulsos; j++)
+			for(j=0; j<cantidad_pulsos-1; j++)
 			{
 				resv[i]=resv[i]+(matrix_v[i][j]*matrix_v[i][j+1]);
 				resh[i]=resh[i]+(matrix_h[i][j]*matrix_h[i][j+1]);
@@ -161,18 +166,18 @@ int main (int argc, char ** argv)
 
 
 		/* Imprimir en consola */
-		/*
+		
 		for(i=0; i<gates; i++)
 		{
-			printf("Autocorrelacion del gate %d es %e\n", i+1, resh[i]);
+			printf("Autocorrelacion del gate %d es %e\n", i+1, resv[i]);
 		}
-		*/
+		
 
 
 		free_memory();
 
 		double time = omp_get_wtime() - start_time;
-		printf("El tiempo de ejecucion es: %lf\n", time);
+		printf("El tiempo de ejecucion es: %lf segundos\n", time);
 
 		return 0;
 
@@ -202,25 +207,6 @@ int main (int argc, char ** argv)
 		return actual;
 	}
 
-	void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r)
-	{
-	/* size_columas es la cantidad de pulsos */
-		int i;
-		int j;
-
-
-
-		for(i=0; i<gates; i++)
-		{
-			r[i]=0;
-			for(j=0; j<size_columnas-1; j++)
-			{
-				r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
-			}
-			r[i]=r[i]/size_columnas;		
-		}
-		return;
-	}
 
 	void free_memory(){
 		struct nodo * first;
@@ -239,3 +225,25 @@ int main (int argc, char ** argv)
 
 		return;
 	}
+
+/*
+	void autocorrelacion(int size_columnas, float matrix[gates][size_columnas], float * r)
+	{
+//	 size_columas es la cantidad de pulsos 
+		int i;
+		int j;
+
+
+
+		for(i=0; i<gates; i++)
+		{
+			r[i]=0;
+			for(j=0; j<size_columnas-1; j++)
+			{
+				r[i]=r[i]+(matrix[i][j]*matrix[i][j+1]);
+			}
+			r[i]=r[i]/size_columnas;		
+		}
+		return;
+	}
+	*/
