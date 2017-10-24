@@ -67,33 +67,37 @@ static void red_task(void *pvParameters);
 static void blue_task(void *pvParameters);
 
 struct message{
-	int size;
+	int tipo;
 	char * message;
 };
+/*
+ * Tipo 0: Cadena de tamaño variable y de caracteres pseudo-aleatorios.
+ * Tipo 1: Valor que tomo el sensor de temperatura.
+ */
 
 
 /* TAREA TEMPERATURA */
 void red_task(void *pvParameters) {
 	struct message mensaje_enviar;
-	int temp;
-	const char texto[] = "La temperatura sensada es de: ";
-	const int cantidad_decimales = 3;
-	char numero[cantidad_decimales+1];
+	uint8_t temp;
+
 	QueueHandle_t xQueuec;
 	xQueuec = (QueueHandle_t) pvParameters;
 
 	for (;;) {
 
-		temp = rand() % 100;
-		mensaje_enviar.message = (char*)pvPortMalloc((sizeof(texto) + cantidad_decimales*sizeof(char) + sizeof(char)));
+		temp = rand() % 256; //valor de 0 a 255.
+		mensaje_enviar.message = (char*)pvPortMalloc(sizeof(char));
 		if(mensaje_enviar.message == NULL){
 			printf("ERROR ALOCANDO MEMORIA");
 			vTaskSuspend(NULL);
 		}
 
-		sprintf(mensaje_enviar.message, "%s%d",texto, temp);
+
+		*mensaje_enviar.message = (char) temp;
 		//printf("Emisor: %s\r\n", mensaje_enviar.message);
 
+		mensaje_enviar.tipo = 1;
 		xQueueSend(xQueuec, ( void * ) &mensaje_enviar, ( TickType_t ) portMAX_DELAY);
 
 		mensaje_enviar.message = NULL;
@@ -136,6 +140,7 @@ void green_task(void *pvParameters) {
 						}
 
 				strcpy (mensaje_enviar.message,palabra);
+				mensaje_enviar.tipo = 0;
 				xQueueSend(xQueuec, ( void * ) &mensaje_enviar, ( TickType_t ) portMAX_DELAY);
 				//printf("Emisor: %s\r\n", palabra);
 				boton_empujado = 1;
@@ -157,7 +162,7 @@ void green_task(void *pvParameters) {
 /* TAREA UART */
 void blue_task(void *pvParameters) {
 	struct message mensaje_recibido;
-
+	uint8_t auxiliar;
 	QueueHandle_t xQueuec;
 
 	xQueuec = (QueueHandle_t) pvParameters;
@@ -165,7 +170,19 @@ void blue_task(void *pvParameters) {
 	for (;;) {
 
 		xQueueReceive(xQueuec, &mensaje_recibido, ( TickType_t ) portMAX_DELAY);
-		printf("Receptor: %s\r\n\n", mensaje_recibido.message);
+		switch(mensaje_recibido.tipo){
+		case 0:
+			printf("Receptor: %s\r\n\n", mensaje_recibido.message);
+			break;
+		case 1:
+			auxiliar = (uint8_t) *mensaje_recibido.message;
+			printf("Receptor: Valor del sensor: %u\r\n\n", auxiliar);
+			break;
+		default:
+			printf("Receptor: ERROR!\r\n\n");
+
+		}
+
 
 		vPortFree(mensaje_recibido.message);
 		mensaje_recibido.message = NULL;
