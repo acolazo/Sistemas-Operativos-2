@@ -204,7 +204,7 @@ int main(void) {
 	/* Add your code here */
 	QueueHandle_t xQueuec;
 	/* Tracealyzer Code. Remove for debugging. */
-	//vTraceEnable(TRC_START);
+	vTraceEnable(TRC_START);
 
 
 
